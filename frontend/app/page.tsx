@@ -28,28 +28,23 @@ export default function Dashboard() {
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-start">
-          <div className="text-center space-y-4 flex-1">
-            <h1 className="text-5xl font-bold text-foreground">
-              Mothership AI
-            </h1>
-            <div className="space-y-2">
-              <p className="text-lg text-muted-foreground font-medium">
-                Project Pheonix
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Central AI with ontological library for specialized agents
-              </p>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-              <span className="text-sm text-muted-foreground">
-                Connected
-              </span>
-            </div>
+        <div className="text-center space-y-4">
+          <h1 className="text-5xl font-bold text-foreground">
+            Mothership AI
+          </h1>
+          <div className="space-y-2">
+            <p className="text-lg text-muted-foreground font-medium">
+              Project Pheonix
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Central AI with ontological library for specialized agents
+            </p>
           </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <span className="text-sm text-muted-foreground">
+              Connected
+            </span>
           </div>
         </div>
 
@@ -250,6 +245,11 @@ export default function Dashboard() {
             Conceived, Designed, and Built by Sean McDonnell
           </p>
         </div>
+      </div>
+
+      {/* Theme Toggle - Fixed at bottom right */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <ThemeToggle />
       </div>
     </div>
   )
