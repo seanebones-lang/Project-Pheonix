@@ -13,8 +13,8 @@ from sympy.calculus import diff, integrate
 from sympy.solvers import solve_linear_system
 from sympy.matrices import Matrix
 
-from agent_base import BaseAgent
-from shared.models import Task, TaskStatus
+from ..base.agent_base import BaseAgent
+from ...shared.models import Task, TaskStatus
 
 class MathAgent(BaseAgent):
     """Specialized agent for mathematical problem solving."""

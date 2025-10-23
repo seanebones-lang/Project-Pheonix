@@ -1,265 +1,308 @@
 """
-Directive Engine for generating task-specific directives based on ontological values and beliefs.
+Directive Engine for generating AI task constraints based on ontological values and beliefs.
 """
 
 import uuid
-from typing import List, Dict, Any, Optional, Tuple
+from datetime import datetime, timedelta
+from typing import List, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select
+import structlog
 
-from shared.models import Directive, DirectiveCreate, Value, Belief
-from shared.ai_providers import ai_manager, AIProvider
-from ontology_manager import OntologyManager
+from ...shared.models import Directive, Value, Belief, DirectiveCreate
+from ...shared.ai_providers import AIProviderManager
+from .ontology_manager import OntologyManager
+
+logger = structlog.get_logger()
 
 class DirectiveEngine:
-    """Generates directives for agents based on ontological values and beliefs."""
+    """Generates AI directives based on ontological values and beliefs."""
     
-    def __init__(self, db_session: AsyncSession):
-        self.db = db_session
-        self.ontology_manager = OntologyManager(db_session)
+    def __init__(self, db: AsyncSession):
+        self.db = db
+        self.ai_provider = AIProviderManager()
+        self.ontology_manager = OntologyManager(db)
     
-    async def generate_directive(self, task_description: str, task_type: str, user_context: Dict[str, Any] = None) -> Directive:
+    async def generate_directive(
+        self, 
+        task_description: str, 
+        task_type: str,
+        user_context: Optional[Dict[str, Any]] = None
+    ) -> Directive:
         """Generate a directive for a specific task."""
-        
-        # Analyze the task to identify relevant values and beliefs
-        relevant_values, relevant_beliefs = await self._analyze_task(task_description, task_type)
-        
-        # Generate constraints based on the ontological analysis
-        constraints = await self._generate_constraints(
-            task_description, 
-            task_type, 
-            relevant_values, 
-            relevant_beliefs,
-            user_context
-        )
-        
-        # Create the directive
-        directive_data = DirectiveCreate(
-            task_type=task_type,
-            constraints=constraints,
-            source_values=[v.id for v in relevant_values],
-            source_beliefs=[b.id for b in relevant_beliefs]
-        )
-        
-        directive = Directive(
-            task_type=directive_data.task_type,
-            constraints=directive_data.constraints,
-            source_values=directive_data.source_values,
-            source_beliefs=directive_data.source_beliefs
-        )
-        
-        self.db.add(directive)
-        await self.db.commit()
-        await self.db.refresh(directive)
-        
-        return directive
+        try:
+            # Get relevant values and beliefs
+            relevant_values, relevant_beliefs = await self.ontology_manager.get_relevant_values_and_beliefs(
+                task_description, task_type, limit=5
+            )
+            
+            # Generate constraints using AI
+            constraints = await self._generate_constraints(
+                task_description, 
+                task_type, 
+                relevant_values, 
+                relevant_beliefs,
+                user_context
+            )
+            
+            # Create directive
+            directive = Directive(
+                task_type=task_type,
+                constraints=constraints,
+                source_values=[v.id for v in relevant_values],
+                source_beliefs=[b.id for b in relevant_beliefs],
+                expires_at=datetime.utcnow() + timedelta(hours=24)  # 24-hour expiry
+            )
+            
+            self.db.add(directive)
+            await self.db.commit()
+            await self.db.refresh(directive)
+            
+            logger.info(
+                "Generated directive",
+                directive_id=str(directive.id),
+                task_type=task_type,
+                constraints_count=len(constraints)
+            )
+            
+            return directive
+            
+        except Exception as e:
+            await self.db.rollback()
+            logger.error("Failed to generate directive", error=str(e))
+            raise
     
-    async def _analyze_task(self, task_description: str, task_type: str) -> Tuple[List[Value], List[Belief]]:
-        """Analyze the task to identify relevant values and beliefs."""
+    async def _generate_constraints(
+        self,
+        task_description: str,
+        task_type: str,
+        relevant_values: List[Value],
+        relevant_beliefs: List[Belief],
+        user_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Generate task constraints using AI based on relevant ontology."""
         
-        # Create a comprehensive task analysis prompt
-        analysis_prompt = f"""
-        Analyze this task and identify which ontological values and beliefs are most relevant:
+        # Build context from relevant values and beliefs
+        values_context = "\n".join([f"- {v.name}: {v.description}" for v in relevant_values])
+        beliefs_context = "\n".join([f"- {b.name}: {b.description}" for b in relevant_beliefs])
+        
+        # Create the prompt
+        prompt = f"""
+        You are the Mothership AI directive engine. Generate task constraints for an AI agent based on ontological values and beliefs.
         
         Task Type: {task_type}
         Task Description: {task_description}
         
-        Consider the following aspects:
-        1. What values should guide the execution of this task?
-        2. What beliefs should inform how this task is performed?
-        3. What ethical considerations are important?
-        4. What quality standards should be maintained?
-        
-        Respond with a JSON object containing:
-        - relevant_values: List of value names that apply
-        - relevant_beliefs: List of belief names that apply
-        - reasoning: Brief explanation of why these are relevant
-        """
-        
-        # Get AI analysis
-        analysis_schema = {
-            "type": "object",
-            "properties": {
-                "relevant_values": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
-                "relevant_beliefs": {
-                    "type": "array", 
-                    "items": {"type": "string"}
-                },
-                "reasoning": {"type": "string"}
-            },
-            "required": ["relevant_values", "relevant_beliefs", "reasoning"]
-        }
-        
-        analysis = await ai_manager.generate_structured(analysis_prompt, analysis_schema)
-        
-        # Find matching values and beliefs in the database
-        relevant_values = []
-        relevant_beliefs = []
-        
-        # Search for values
-        for value_name in analysis["relevant_values"]:
-            similar_values = await self.ontology_manager.search_similar_values(value_name, limit=1)
-            if similar_values and similar_values[0][1] < 0.3:  # Similarity threshold
-                relevant_values.append(similar_values[0][0])
-        
-        # Search for beliefs
-        for belief_name in analysis["relevant_beliefs"]:
-            similar_beliefs = await self.ontology_manager.search_similar_beliefs(belief_name, limit=1)
-            if similar_beliefs and similar_beliefs[0][1] < 0.3:  # Similarity threshold
-                relevant_beliefs.append(similar_beliefs[0][0])
-        
-        # If no matches found, get the most general values and beliefs
-        if not relevant_values:
-            all_values = await self.ontology_manager.get_values(limit=3)
-            relevant_values.extend(all_values)
-        
-        if not relevant_beliefs:
-            all_beliefs = await self.ontology_manager.get_beliefs(limit=3)
-            relevant_beliefs.extend(all_beliefs)
-        
-        return relevant_values, relevant_beliefs
-    
-    async def _generate_constraints(self, task_description: str, task_type: str, 
-                                  values: List[Value], beliefs: List[Belief], 
-                                  user_context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Generate specific constraints based on values and beliefs."""
-        
-        # Create constraint generation prompt
-        values_text = "\n".join([f"- {v.name}: {v.description}" for v in values])
-        beliefs_text = "\n".join([f"- {b.name}: {b.description}" for b in beliefs])
-        
-        constraint_prompt = f"""
-        Generate specific constraints for executing this task based on the following ontological values and beliefs:
-        
-        Task: {task_description}
-        Task Type: {task_type}
-        
         Relevant Values:
-        {values_text}
+        {values_context}
         
         Relevant Beliefs:
-        {beliefs_text}
+        {beliefs_context}
         
-        User Context: {user_context or "No specific context provided"}
+        User Context: {user_context or "None"}
         
-        Generate a JSON object with specific, actionable constraints that an AI agent should follow when executing this task. Include:
-        - quality_standards: Specific quality requirements
-        - ethical_guidelines: Ethical considerations to follow
-        - output_format: How the output should be formatted
-        - safety_measures: Safety precautions to take
-        - performance_criteria: How success should be measured
+        Generate a JSON object with the following structure:
+        {{
+            "ethical_constraints": [
+                "List of ethical guidelines the agent must follow"
+            ],
+            "quality_standards": [
+                "List of quality requirements for the task"
+            ],
+            "safety_measures": [
+                "List of safety precautions to implement"
+            ],
+            "output_format": {{
+                "description": "Expected output format",
+                "validation_rules": ["List of validation rules"]
+            }},
+            "resource_limits": {{
+                "max_computation_time": "Maximum time allowed",
+                "max_memory_usage": "Maximum memory allowed",
+                "max_api_calls": "Maximum API calls allowed"
+            }},
+            "monitoring_requirements": [
+                "List of monitoring and logging requirements"
+            ],
+            "fallback_behavior": {{
+                "on_error": "What to do when errors occur",
+                "on_timeout": "What to do when timeout occurs",
+                "on_invalid_input": "What to do with invalid input"
+            }}
+        }}
         
-        Make constraints specific and actionable, not generic.
+        Ensure the constraints are specific, actionable, and aligned with the provided values and beliefs.
         """
         
-        constraint_schema = {
+        schema = {
             "type": "object",
             "properties": {
-                "quality_standards": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
-                "ethical_guidelines": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
+                "ethical_constraints": {"type": "array", "items": {"type": "string"}},
+                "quality_standards": {"type": "array", "items": {"type": "string"}},
+                "safety_measures": {"type": "array", "items": {"type": "string"}},
                 "output_format": {
                     "type": "object",
                     "properties": {
-                        "format": {"type": "string"},
-                        "include_explanations": {"type": "boolean"},
-                        "step_by_step": {"type": "boolean"}
+                        "description": {"type": "string"},
+                        "validation_rules": {"type": "array", "items": {"type": "string"}}
                     }
                 },
-                "safety_measures": {
-                    "type": "array",
-                    "items": {"type": "string"}
+                "resource_limits": {
+                    "type": "object",
+                    "properties": {
+                        "max_computation_time": {"type": "string"},
+                        "max_memory_usage": {"type": "string"},
+                        "max_api_calls": {"type": "string"}
+                    }
                 },
-                "performance_criteria": {
-                    "type": "array",
-                    "items": {"type": "string"}
+                "monitoring_requirements": {"type": "array", "items": {"type": "string"}},
+                "fallback_behavior": {
+                    "type": "object",
+                    "properties": {
+                        "on_error": {"type": "string"},
+                        "on_timeout": {"type": "string"},
+                        "on_invalid_input": {"type": "string"}
+                    }
                 }
             },
-            "required": ["quality_standards", "ethical_guidelines", "output_format", "safety_measures", "performance_criteria"]
+            "required": ["ethical_constraints", "quality_standards", "safety_measures", "output_format", "resource_limits", "monitoring_requirements", "fallback_behavior"]
         }
         
-        constraints = await ai_manager.generate_structured(constraint_prompt, constraint_schema)
-        
-        # Add metadata
-        constraints["generated_at"] = "2025-01-27T00:00:00Z"
-        constraints["source_values"] = [v.name for v in values]
-        constraints["source_beliefs"] = [b.name for b in beliefs]
-        
-        return constraints
+        try:
+            constraints = await self.ai_provider.generate_structured_output(prompt, schema)
+            return constraints
+        except Exception as e:
+            logger.warning("AI constraint generation failed, using defaults", error=str(e))
+            return self._get_default_constraints(task_type)
+    
+    def _get_default_constraints(self, task_type: str) -> Dict[str, Any]:
+        """Get default constraints when AI generation fails."""
+        return {
+            "ethical_constraints": [
+                "Maintain user privacy and data protection",
+                "Provide accurate and truthful information",
+                "Respect user autonomy and choices"
+            ],
+            "quality_standards": [
+                "Ensure output accuracy and completeness",
+                "Provide clear explanations when requested",
+                "Validate all inputs before processing"
+            ],
+            "safety_measures": [
+                "Implement input validation and sanitization",
+                "Log all operations for audit purposes",
+                "Handle errors gracefully without exposing sensitive information"
+            ],
+            "output_format": {
+                "description": "Structured JSON response with clear status and data fields",
+                "validation_rules": [
+                    "Response must be valid JSON",
+                    "Include status field indicating success/failure",
+                    "Include error messages when applicable"
+                ]
+            },
+            "resource_limits": {
+                "max_computation_time": "30 seconds",
+                "max_memory_usage": "512MB",
+                "max_api_calls": "10"
+            },
+            "monitoring_requirements": [
+                "Log task start and completion times",
+                "Monitor resource usage",
+                "Track success/failure rates"
+            ],
+            "fallback_behavior": {
+                "on_error": "Return error message and log details",
+                "on_timeout": "Return timeout message and partial results if available",
+                "on_invalid_input": "Return validation error with specific field issues"
+            }
+        }
     
     async def get_directive(self, directive_id: uuid.UUID) -> Optional[Directive]:
         """Get a directive by ID."""
-        return await self.db.get(Directive, directive_id)
+        try:
+            result = await self.db.execute(select(Directive).where(Directive.id == directive_id))
+            return result.scalar_one_or_none()
+        except Exception as e:
+            logger.error("Failed to get directive", error=str(e))
+            raise
     
-    async def get_directives_by_task_type(self, task_type: str, limit: int = 10) -> List[Directive]:
-        """Get directives by task type."""
-        result = await self.db.execute(
-            select(Directive)
-            .where(Directive.task_type == task_type)
-            .order_by(Directive.created_at.desc())
-            .limit(limit)
-        )
-        return result.scalars().all()
+    async def validate_directive_compliance(
+        self, 
+        directive_id: uuid.UUID, 
+        agent_output: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Validate agent output against directive constraints."""
+        try:
+            directive = await self.get_directive(directive_id)
+            if not directive:
+                return {"valid": False, "error": "Directive not found"}
+            
+            # Check if directive has expired
+            if directive.expires_at and datetime.utcnow() > directive.expires_at:
+                return {"valid": False, "error": "Directive has expired"}
+            
+            # Validate against constraints
+            validation_result = {
+                "valid": True,
+                "violations": [],
+                "warnings": []
+            }
+            
+            constraints = directive.constraints
+            
+            # Check output format
+            if "output_format" in constraints:
+                format_constraints = constraints["output_format"]
+                if "validation_rules" in format_constraints:
+                    for rule in format_constraints["validation_rules"]:
+                        if not self._validate_output_rule(agent_output, rule):
+                            validation_result["violations"].append(f"Output format violation: {rule}")
+                            validation_result["valid"] = False
+            
+            # Check ethical constraints
+            if "ethical_constraints" in constraints:
+                for constraint in constraints["ethical_constraints"]:
+                    if not self._check_ethical_compliance(agent_output, constraint):
+                        validation_result["warnings"].append(f"Ethical concern: {constraint}")
+            
+            logger.info(
+                "Directive compliance validation completed",
+                directive_id=str(directive_id),
+                valid=validation_result["valid"],
+                violations_count=len(validation_result["violations"])
+            )
+            
+            return validation_result
+            
+        except Exception as e:
+            logger.error("Failed to validate directive compliance", error=str(e))
+            raise
     
-    async def update_directive_constraints(self, directive_id: uuid.UUID, new_constraints: Dict[str, Any]) -> Directive:
-        """Update constraints for an existing directive."""
-        directive = await self.db.get(Directive, directive_id)
-        if not directive:
-            raise ValueError(f"Directive with id {directive_id} not found")
-        
-        directive.constraints = new_constraints
-        await self.db.commit()
-        await self.db.refresh(directive)
-        
-        return directive
+    def _validate_output_rule(self, output: Dict[str, Any], rule: str) -> bool:
+        """Validate output against a specific rule."""
+        # This is a simplified implementation
+        # In production, you'd want more sophisticated rule validation
+        if "valid JSON" in rule.lower():
+            try:
+                import json
+                json.dumps(output)
+                return True
+            except:
+                return False
+        elif "status field" in rule.lower():
+            return "status" in output
+        return True  # Default to valid for unknown rules
     
-    async def validate_directive_compliance(self, directive_id: uuid.UUID, agent_output: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate if agent output complies with directive constraints."""
-        directive = await self.db.get(Directive, directive_id)
-        if not directive:
-            raise ValueError(f"Directive with id {directive_id} not found")
+    def _check_ethical_compliance(self, output: Dict[str, Any], constraint: str) -> bool:
+        """Check if output complies with ethical constraint."""
+        # This is a simplified implementation
+        # In production, you'd want more sophisticated ethical checking
+        output_str = str(output).lower()
         
-        validation_prompt = f"""
-        Validate if the following agent output complies with the directive constraints:
+        if "privacy" in constraint.lower():
+            return "password" not in output_str and "secret" not in output_str
+        elif "accurate" in constraint.lower():
+            return "error" not in output_str or output.get("status") != "error"
         
-        Directive Constraints:
-        {directive.constraints}
-        
-        Agent Output:
-        {agent_output}
-        
-        Provide a validation report with:
-        - compliance_score: Score from 0-100
-        - violations: List of any constraint violations
-        - recommendations: Suggestions for improvement
-        - overall_assessment: Brief summary
-        """
-        
-        validation_schema = {
-            "type": "object",
-            "properties": {
-                "compliance_score": {"type": "integer", "minimum": 0, "maximum": 100},
-                "violations": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
-                "recommendations": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
-                "overall_assessment": {"type": "string"}
-            },
-            "required": ["compliance_score", "violations", "recommendations", "overall_assessment"]
-        }
-        
-        validation_result = await ai_manager.generate_structured(validation_prompt, validation_schema)
-        
-        return validation_result
+        return True  # Default to compliant for unknown constraints

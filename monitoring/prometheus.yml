@@ -1,0 +1,45 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "mothership_rules.yml"
+
+scrape_configs:
+  - job_name: 'mothership-api'
+    static_configs:
+      - targets: ['mothership-api:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 10s
+
+  - job_name: 'mothership-tenants'
+    static_configs:
+      - targets: ['mothership-api:8000']
+    metrics_path: '/metrics/tenants'
+    scrape_interval: 30s
+
+  - job_name: 'mothership-ai-providers'
+    static_configs:
+      - targets: ['mothership-api:8000']
+    metrics_path: '/metrics/ai-providers'
+    scrape_interval: 60s
+
+  - job_name: 'mothership-elca-compliance'
+    static_configs:
+      - targets: ['mothership-api:8000']
+    metrics_path: '/metrics/elca-compliance'
+    scrape_interval: 300s
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+

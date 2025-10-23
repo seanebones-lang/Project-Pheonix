@@ -12,8 +12,8 @@ from datetime import datetime
 import socketio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.models import Agent, Task, TaskStatus, AgentStatus
-from shared.ai_providers import ai_manager
+from ...shared.models import Agent, Task, TaskStatus, AgentStatus
+from ...shared.ai_providers import AIProviderManager
 
 class BaseAgent(ABC):
     """Base class for all specialized agents."""
@@ -24,6 +24,9 @@ class BaseAgent(ABC):
         self.agent_type = agent_type
         self.capabilities = capabilities
         self.status = AgentStatus.ACTIVE
+        
+        # AI provider for validation
+        self.ai_provider = AIProviderManager()
         
         # WebSocket client for communication with Mothership
         self.sio = socketio.AsyncClient()
@@ -250,7 +253,7 @@ class BaseAgent(ABC):
                 "required": ["compliance_score", "violations", "recommendations", "overall_assessment"]
             }
             
-            validation_result = await ai_manager.generate_structured(validation_prompt, validation_schema)
+            validation_result = await self.ai_provider.generate_structured_output(validation_prompt, validation_schema)
             return validation_result
             
         except Exception as e:

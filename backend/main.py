@@ -7,22 +7,23 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import List, Dict, Any, Optional
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 import structlog
+import asyncio
 
 from shared.models import (
     get_db, Value, Belief, Directive, Agent, Task,
     ValueCreate, ValueResponse, BeliefCreate, BeliefResponse,
     DirectiveCreate, DirectiveResponse, AgentResponse, TaskCreate, TaskResponse
 )
-from ontology_manager import OntologyManager
-from directive_engine import DirectiveEngine
-from websocket_manager import WebSocketManager
+from services.mothership.ontology_manager import OntologyManager
+from services.mothership.directive_engine import DirectiveEngine
+from services.mothership.websocket_manager import WebSocketManager
 
 # Configure structured logging
 structlog.configure(
@@ -362,14 +363,70 @@ async def get_task(
         logger.error("Failed to get task", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/tasks/recent", response_model=List[TaskResponse])
+async def get_recent_tasks(
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db)
+):
+    """Get recent tasks."""
+    try:
+        result = await db.execute(
+            select(Task)
+            .order_by(Task.created_at.desc())
+            .limit(limit)
+        )
+        tasks = result.scalars().all()
+        
+        return [
+            TaskResponse(
+                id=t.id,
+                user_id=t.user_id,
+                agent_id=t.agent_id,
+                directive_id=t.directive_id,
+                input_data=t.input_data,
+                output_data=t.output_data,
+                status=t.status,
+                error_message=t.error_message,
+                created_at=t.created_at,
+                completed_at=t.completed_at
+            )
+            for t in tasks
+        ]
+    except Exception as e:
+        logger.error("Failed to get recent tasks", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/ontology/summary")
+async def get_ontology_summary(db: AsyncSession = Depends(get_db)):
+    """Get ontology summary statistics."""
+    try:
+        # Count values
+        values_result = await db.execute(select(func.count(Value.id)))
+        total_values = values_result.scalar()
+        
+        # Count beliefs
+        beliefs_result = await db.execute(select(func.count(Belief.id)))
+        total_beliefs = beliefs_result.scalar()
+        
+        return {
+            "total_values": total_values,
+            "total_beliefs": total_beliefs,
+            "ontology_size": total_values + total_beliefs
+        }
+    except Exception as e:
+        logger.error("Failed to get ontology summary", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
 # WebSocket endpoint
-@app.get("/api/ws")
-async def websocket_endpoint():
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time communication."""
     if not websocket_manager:
-        raise HTTPException(status_code=503, detail="WebSocket manager not available")
+        await websocket.close(code=1011, reason="WebSocket manager not available")
+        return
     
-    return {"websocket_url": "/ws"}
+    connection_id = str(uuid.uuid4())
+    await websocket_manager.handle_connection(websocket, connection_id)
 
 # Error handlers
 @app.exception_handler(404)
