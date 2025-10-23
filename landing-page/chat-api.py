@@ -91,7 +91,7 @@ def check_faq(message: str) -> str:
 
 @app.post("/api/chat", response_model=ChatResponse)
 @limiter.limit("5/minute")  # Rate limiting (Optimization #1)
-async def chat(request: ChatRequest, req: Request):
+async def chat(req: Request, request: ChatRequest):
     """
     Handle chat messages from the landing page widget with optimizations
     """
