@@ -1436,7 +1436,7 @@ async def get_comprehensive_lutheran_data(request: Request):
 
 @app.post("/api/ministry-request")
 @limiter.limit("10/minute")
-async def submit_ministry_request(req: Request, ministry_request: LutheranMinistryRequest):
+async def submit_ministry_request(request: Request, ministry_request: LutheranMinistryRequest):
     """Submit a ministry request."""
     logger.info(f"Ministry request submitted: {ministry_request.ministry_type} for congregation {ministry_request.congregation_id}")
     
