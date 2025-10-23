@@ -1,14 +1,13 @@
-# Render deployment configuration for ELCA Mothership AIs Enhanced Interactive Demo
+# Render deployment configuration for ELCA Mothership AIs LIVE DEMO
 services:
-  # Backend API Service
+  # Live Demo Service - 8 Interactive Stations
   - type: web
     name: elca-mothership-api
     env: python
     plan: starter
     buildCommand: |
-      pip install -r backend/requirements.txt
-      pip install gunicorn
-    startCommand: gunicorn enhanced_interactive_demo:app --bind 0.0.0.0:$PORT --workers 2 --worker-class uvicorn.workers.UvicornWorker
+      pip install fastapi uvicorn websockets python-dotenv openai anthropic pydantic
+    startCommand: python elca_live_demo.py
     envVars:
       - key: PORT
         value: 10000
@@ -26,47 +25,5 @@ services:
         value: INFO
       - key: DEMO_MODE
         value: true
-    healthCheckPath: /api/health
-    autoDeploy: true
-    branch: main
-
-  # Frontend Service
-  - type: web
-    name: elca-mothership-frontend
-    env: static
-    plan: starter
-    buildCommand: |
-      cd frontend
-      npm install
-      npm run build
-    staticPublishPath: frontend/out
-    envVars:
-      - key: NEXT_PUBLIC_API_URL
-        value: https://elca-mothership-api.onrender.com
-      - key: NEXT_PUBLIC_WS_URL
-        value: wss://elca-mothership-api.onrender.com
-      - key: NEXT_PUBLIC_I18N_ENABLED
-        value: true
-      - key: NEXT_PUBLIC_ACCESSIBILITY_MODE
-        value: true
-      - key: NEXT_PUBLIC_DEMO_MODE
-        value: true
-    autoDeploy: true
-    branch: main
-
-  # Redis Service (for WebSocket and caching)
-  - type: redis
-    name: elca-mothership-redis
-    plan: starter
-    maxmemoryPolicy: allkeys-lru
-    autoDeploy: true
-    branch: main
-
-databases:
-  # PostgreSQL Database
-  - name: elca-mothership-db
-    plan: starter
-    databaseName: elca_mothership
-    user: elca_user
     autoDeploy: true
     branch: main
