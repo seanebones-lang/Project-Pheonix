@@ -54,7 +54,7 @@ class ContactRequest(BaseModel):
     message: str
 
 # Optimized shorter system prompt (Optimization #3)
-SYSTEM_PROMPT = """AI expert for Mothership AI Systems (founded by Sean McDonnell after Geoffrey Hinton's "Diary of a CEO" interview).
+SYSTEM_PROMPT = """AI expert for Mothership AI Systems (founded after Geoffrey Hinton's "Diary of a CEO" interview).
 
 Expertise: AI safety, alignment, ethics, technical architectures, current AI landscape.
 
@@ -66,7 +66,7 @@ Be professional, knowledgeable, consultative. Discuss AI risks honestly. Direct 
 
 # FAQ responses cache (Optimization #2)
 FAQ_RESPONSES = {
-    "what is mothership": "Mothership AI Systems builds custom AI solutions with ethical guardrails for organizations that require trust - like churches, schools, healthcare providers, and nonprofits. Unlike generic AI tools, we embed safeguards, bias detection, and compliance frameworks from day one. Founded by Sean McDonnell after watching Geoffrey Hinton discuss the need for AI with 'maternal instinct' to protect humanity.",
+    "what is mothership": "Mothership AI Systems builds custom AI solutions with ethical guardrails for organizations that require trust - like churches, schools, healthcare providers, and nonprofits. Unlike generic AI tools, we embed safeguards, bias detection, and compliance frameworks from day one. Founded after watching Geoffrey Hinton discuss the need for AI with 'maternal instinct' to protect humanity.",
     
     "pricing": "Our pricing is custom-tailored to your organization's needs, scale, and requirements. Factors include: number of users, data volume, compliance requirements, and features needed. We offer transparent pricing with no hidden costs. Contact info@mothership-ais.com for a consultation and quote.",
     
