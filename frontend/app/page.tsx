@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { 
   Bot, 
   Brain, 
@@ -27,29 +28,34 @@ export default function Dashboard() {
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-5xl font-bold gradient-text">
-            Mothership AI
-          </h1>
-          <div className="space-y-2">
-            <p className="text-lg text-muted-foreground font-medium">
-              Project Pheonix
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Central AI with ontological library for specialized agents
-            </p>
+        <div className="flex justify-between items-start">
+          <div className="text-center space-y-4 flex-1">
+            <h1 className="text-5xl font-bold text-foreground">
+              Mothership AI
+            </h1>
+            <div className="space-y-2">
+              <p className="text-lg text-muted-foreground font-medium">
+                Project Pheonix
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Central AI with ontological library for specialized agents
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-green-500" />
+              <span className="text-sm text-muted-foreground">
+                Connected
+              </span>
+            </div>
           </div>
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500" />
-            <span className="text-sm text-muted-foreground">
-              Connected
-            </span>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
           </div>
         </div>
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="card-hover">
+          <Card className="card-hover border border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
               <Bot className="h-4 w-4 text-muted-foreground" />
@@ -62,7 +68,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="card-hover">
+          <Card className="card-hover border border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Completed Tasks</CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
@@ -75,7 +81,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="card-hover">
+          <Card className="card-hover border border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
@@ -88,7 +94,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="card-hover">
+          <Card className="card-hover border border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Ontology</CardTitle>
               <Brain className="h-4 w-4 text-muted-foreground" />
@@ -104,7 +110,7 @@ export default function Dashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="agents" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4 bg-muted">
             <TabsTrigger value="agents">Agents</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="ontology">Ontology</TabsTrigger>
@@ -113,7 +119,7 @@ export default function Dashboard() {
 
           <TabsContent value="agents" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="card-hover">
+              <Card className="card-hover border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calculator className="h-5 w-5 text-primary" />
@@ -123,7 +129,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <Badge variant="default">Active</Badge>
+                    <Badge variant="default" className="bg-primary text-primary-foreground">Active</Badge>
                     <p className="text-sm text-muted-foreground">
                       Capabilities: Algebra, Calculus, Trigonometry
                     </p>
@@ -134,7 +140,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="card-hover">
+              <Card className="card-hover border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Bot className="h-5 w-5 text-primary" />
@@ -144,7 +150,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <Badge variant="secondary">Inactive</Badge>
+                    <Badge variant="secondary" className="bg-secondary text-secondary-foreground">Inactive</Badge>
                     <p className="text-sm text-muted-foreground">
                       Capabilities: Stock tracking, Order management
                     </p>
@@ -155,7 +161,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="card-hover">
+              <Card className="card-hover border border-border bg-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Bot className="h-5 w-5 text-primary" />
@@ -165,7 +171,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <Badge variant="secondary">Inactive</Badge>
+                    <Badge variant="secondary" className="bg-secondary text-secondary-foreground">Inactive</Badge>
                     <p className="text-sm text-muted-foreground">
                       Capabilities: Content creation, Scheduling
                     </p>
@@ -179,7 +185,7 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="tasks" className="space-y-6">
-            <Card>
+            <Card className="border border-border bg-card">
               <CardContent className="p-6 text-center">
                 <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">No tasks yet</h3>
@@ -191,7 +197,7 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="ontology" className="space-y-6">
-            <Card>
+            <Card className="border border-border bg-card">
               <CardContent className="p-6 text-center">
                 <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">Ontology Management</h3>
@@ -203,7 +209,7 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="submit" className="space-y-6">
-            <Card>
+            <Card className="border border-border bg-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Send className="h-5 w-5" />
@@ -216,7 +222,7 @@ export default function Dashboard() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Task Type</label>
-                  <select className="w-full p-2 border rounded-md">
+                  <select className="w-full p-2 border border-border rounded-md bg-background text-foreground">
                     <option>Math Problem</option>
                     <option>Inventory Management</option>
                     <option>Social Media</option>
@@ -225,11 +231,11 @@ export default function Dashboard() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Problem Description</label>
                   <textarea 
-                    className="w-full p-2 border rounded-md min-h-[120px]"
+                    className="w-full p-2 border border-border rounded-md min-h-[120px] bg-background text-foreground"
                     placeholder="Describe the problem or task you want to solve..."
                   />
                 </div>
-                <Button className="w-full">
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                   <Send className="h-4 w-4 mr-2" />
                   Submit Task
                 </Button>
@@ -239,7 +245,7 @@ export default function Dashboard() {
         </Tabs>
 
         {/* Footer Attribution */}
-        <div className="text-center pt-8 border-t border-muted">
+        <div className="text-center pt-8 border-t border-border">
           <p className="text-xs text-muted-foreground">
             Conceived, Designed, and Built by Sean McDonnell
           </p>
