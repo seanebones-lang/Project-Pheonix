@@ -157,6 +157,80 @@ class AgentResponse(BaseModel):
     timestamp: datetime
     model_used: str
 
+# Compliance and Bias Calculation Functions
+def calculate_compliance_score(response: str, elca_values: List[str]) -> float:
+    """Calculate ELCA compliance score based on response content"""
+    score = 0.0
+    checks = 0
+    
+    # Check for theological grounding
+    theological_terms = ['god', 'christ', 'jesus', 'lutheran', 'faith', 'grace', 'scripture', 'gospel', 'baptism', 'communion']
+    if any(term in response.lower() for term in theological_terms):
+        score += 0.25
+    checks += 1
+    
+    # Check for ELCA values presence
+    values_found = sum(1 for value in elca_values if value.lower() in response.lower())
+    if values_found > 0:
+        score += 0.25 * min(values_found / len(elca_values), 1.0)
+    checks += 1
+    
+    # Check for inclusive language (no gendered God language, welcoming tone)
+    exclusive_terms = ['he ', 'him ', 'his ', 'mankind']
+    inclusive_terms = ['all', 'everyone', 'community', 'welcome', 'include']
+    has_exclusive = any(term in response.lower() for term in exclusive_terms)
+    has_inclusive = any(term in response.lower() for term in inclusive_terms)
+    if has_inclusive and not has_exclusive:
+        score += 0.25
+    elif has_inclusive:
+        score += 0.15
+    checks += 1
+    
+    # Check for practical guidance
+    practical_indicators = ['here', 'you can', 'consider', 'try', 'steps', 'resources', 'contact']
+    if any(indicator in response.lower() for indicator in practical_indicators):
+        score += 0.25
+    checks += 1
+    
+    return round(min(score, 1.0), 2)
+
+def calculate_bias_score(response: str, query: str) -> float:
+    """Calculate bias score - lower is better (0.0 = no bias detected)"""
+    bias_score = 0.0
+    
+    # Check for partisan language
+    partisan_terms = ['democrat', 'republican', 'liberal', 'conservative', 'left-wing', 'right-wing']
+    bias_score += sum(0.15 for term in partisan_terms if term in response.lower())
+    
+    # Check for exclusive language
+    exclusive_terms = ['only', 'must', 'always', 'never', 'forbidden', 'required']
+    bias_score += sum(0.05 for term in exclusive_terms if term in response.lower())
+    
+    # Check for gendered assumptions
+    gendered_terms = ['he ', 'him ', 'his ', 'mankind', 'chairman', 'policeman']
+    bias_score += sum(0.10 for term in gendered_terms if term in response.lower())
+    
+    # Check for cultural assumptions
+    cultural_bias = ['american', 'western', 'traditional family', 'normal']
+    bias_score += sum(0.08 for term in cultural_bias if term in response.lower())
+    
+    return round(min(bias_score, 1.0), 3)
+
+def format_response_for_readability(response: str) -> str:
+    """Format AI response for better readability"""
+    # Already well-formatted responses don't need changes
+    if '**' in response and '\n\n' in response:
+        return response
+    
+    # Add spacing after periods for better readability
+    formatted = response.replace('. ', '.\n\n')
+    
+    # Ensure theological grounding is highlighted
+    if 'theological grounding' not in formatted.lower() and ('god' in formatted.lower() or 'christ' in formatted.lower()):
+        formatted = "**Theological Grounding:** " + formatted
+    
+    return formatted
+
 # AI Execution Functions
 async def execute_agent(station_id: str, query: str) -> AgentResponse:
     """Execute agent with ELCA compliance"""
@@ -416,17 +490,32 @@ Query: {query}"""
     else:
         response_text = "AI providers not available. Please configure API keys."
     
-    # Determine human review flag
-    human_review_keywords = ['crisis', 'emergency', 'suicide', 'abuse', 'trauma', 'death', 'dying', 'grief']
+    # Format response for better readability
+    response_text = format_response_for_readability(response_text)
+    
+    # Calculate REAL compliance and bias scores
+    compliance_score = calculate_compliance_score(response_text, station['elca_values'])
+    bias_score = calculate_bias_score(response_text, query)
+    
+    # Determine human review flag with enhanced detection
+    human_review_keywords = [
+        'crisis', 'emergency', 'suicide', 'abuse', 'trauma', 'death', 'dying', 'grief',
+        'divorce', 'addiction', 'mental health', 'depression', 'anxiety', 'violence',
+        'sexual', 'gender identity', 'abortion', 'euthanasia', 'war', 'conflict'
+    ]
     human_review_needed = any(keyword in query.lower() for keyword in human_review_keywords)
+    
+    # Also flag if bias score is high or compliance is low
+    if bias_score > 0.15 or compliance_score < 0.70:
+        human_review_needed = True
     
     return AgentResponse(
         station_id=station_id,
         station_name=station['name'],
         response=response_text,
         elca_values_applied=station['elca_values'],
-        compliance_score=1.0,
-        bias_score=0.02,
+        compliance_score=compliance_score,
+        bias_score=bias_score,
         human_review_needed=human_review_needed,
         timestamp=datetime.now(),
         model_used=model_used
