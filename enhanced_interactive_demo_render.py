@@ -5,7 +5,7 @@ This is the most comprehensive, complete, and inclusive demo for the entire Luth
 Every feature, every capability, every aspect of Lutheran ministry and community life.
 """
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Depends, status
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Depends, status, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -703,7 +703,7 @@ class GlobalLutheranMessage(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 @limiter.limit("10/minute")
-async def comprehensive_lutheran_demo():
+async def comprehensive_lutheran_demo(request: Request):
     """Comprehensive Lutheran Church Demo - The most complete AI system for Lutheran ministry."""
     return f"""
     <!DOCTYPE html>
@@ -1430,24 +1430,24 @@ async def comprehensive_lutheran_demo():
 
 @app.get("/api/comprehensive-data")
 @limiter.limit("30/minute")
-async def get_comprehensive_lutheran_data():
+async def get_comprehensive_lutheran_data(request: Request):
     """Get comprehensive Lutheran Church data."""
     return JSONResponse(content=COMPREHENSIVE_LUTHERAN_DATA)
 
 @app.post("/api/ministry-request")
 @limiter.limit("10/minute")
-async def submit_ministry_request(request: LutheranMinistryRequest):
+async def submit_ministry_request(req: Request, ministry_request: LutheranMinistryRequest):
     """Submit a ministry request."""
-    logger.info(f"Ministry request submitted: {request.ministry_type} for congregation {request.congregation_id}")
+    logger.info(f"Ministry request submitted: {ministry_request.ministry_type} for congregation {ministry_request.congregation_id}")
     
     # Process ministry request
     response = {
         "status": "success",
-        "ministry_type": request.ministry_type,
-        "congregation_id": request.congregation_id,
-        "theological_context": request.theological_context,
-        "language": request.language,
-        "accessibility_accommodations": request.accessibility_needs,
+        "ministry_type": ministry_request.ministry_type,
+        "congregation_id": ministry_request.congregation_id,
+        "theological_context": ministry_request.theological_context,
+        "language": ministry_request.language,
+        "accessibility_accommodations": ministry_request.accessibility_needs,
         "resources_provided": [],
         "next_steps": [],
         "estimated_timeline": "1-2 weeks",
