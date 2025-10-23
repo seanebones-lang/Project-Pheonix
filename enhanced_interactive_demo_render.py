@@ -55,66 +55,82 @@ if CLAUDE_AVAILABLE and os.getenv("ANTHROPIC_API_KEY"):
 DEMO_STATIONS = {
     "pastoral_care": {
         "name": "Pastoral Care Agent",
-        "description": "Compassionate support with Grace & Accompaniment",
+        "description": "Compassionate support grounded in Lutheran theology and ELCA pastoral care guidelines",
         "icon": "🙏",
         "example_query": "Help a member grieving a spouse",
-        "elca_values": ["Grace", "Accompaniment", "Compassion", "Healing"],
+        "elca_values": ["Grace", "Accompaniment", "Compassion", "Healing", "Dignity", "Inclusion"],
+        "theological_foundation": "Lutheran theology of the cross, grace through faith, priesthood of all believers",
+        "compliance_standards": ["ELCA Guidelines for Ministry", "ELCA Social Statement on Mental Health", "Professional Standards for Rostered Ministers"],
         "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "worship_planning": {
         "name": "Worship Planning Agent",
-        "description": "Liturgical planning with Worship & Community",
+        "description": "Liturgical planning following ELCA worship guidelines and Lutheran liturgical tradition",
         "icon": "⛪",
         "example_query": "Plan service for Advent 2",
-        "elca_values": ["Worship", "Community", "Inclusion", "Tradition"],
+        "elca_values": ["Worship", "Community", "Inclusion", "Tradition", "Accessibility", "Excellence"],
+        "theological_foundation": "Lutheran liturgical theology, Word and Sacrament ministry, liturgical calendar",
+        "compliance_standards": ["ELCA Worship Guidelines", "Evangelical Lutheran Worship (ELW)", "ELCA Accessibility Standards"],
         "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "member_engagement": {
         "name": "Member Engagement Agent",
-        "description": "Community building with Hospitality & Inclusion",
+        "description": "Community building through radical hospitality and ELCA community guidelines",
         "icon": "🤝",
         "example_query": "Create Christmas newsletter",
-        "elca_values": ["Hospitality", "Inclusion", "Community", "Service"],
+        "elca_values": ["Hospitality", "Inclusion", "Community", "Service", "Welcome", "Generosity"],
+        "theological_foundation": "Lutheran understanding of Christian community, priesthood of all believers",
+        "compliance_standards": ["ELCA Community Guidelines", "ELCA Communication Standards", "ELCA Hospitality Guidelines"],
         "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "education": {
         "name": "Education Agent",
-        "description": "Faith formation with Education & Community",
+        "description": "Faith formation following ELCA educational guidelines and Lutheran pedagogy",
         "icon": "📚",
         "example_query": "Confirmation lesson on Baptism",
-        "elca_values": ["Faith Formation", "Learning", "Wisdom", "Growth"],
+        "elca_values": ["Faith Formation", "Learning", "Wisdom", "Growth", "Discipleship", "Excellence"],
+        "theological_foundation": "Lutheran catechetical tradition, lifelong faith formation, theology of Baptism",
+        "compliance_standards": ["ELCA Educational Guidelines", "ELCA Confirmation Guidelines", "Lutheran Confessions"],
         "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "administration": {
         "name": "Administration Agent",
-        "description": "Church operations with Stewardship & Service",
+        "description": "Church operations following ELCA administrative guidelines and Lutheran stewardship principles",
         "icon": "📋",
         "example_query": "Schedule volunteers for event",
-        "elca_values": ["Stewardship", "Service", "Organization", "Efficiency"],
+        "elca_values": ["Stewardship", "Service", "Organization", "Efficiency", "Transparency", "Accountability"],
+        "theological_foundation": "Lutheran theology of vocation, stewardship of God's gifts, servant leadership",
+        "compliance_standards": ["ELCA Administrative Guidelines", "ELCA Financial Management Standards", "ELCA Volunteer Guidelines"],
         "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "mission": {
         "name": "Mission & Outreach Agent",
-        "description": "Service work with Justice & Service",
+        "description": "Service work following ELCA mission guidelines and Lutheran social ministry tradition",
         "icon": "🌍",
         "example_query": "Plan food pantry outreach",
-        "elca_values": ["Justice", "Service", "Compassion", "Community"],
+        "elca_values": ["Justice", "Service", "Compassion", "Community", "Solidarity", "Advocacy"],
+        "theological_foundation": "Lutheran social ministry, theology of the neighbor, God's preferential option for the poor",
+        "compliance_standards": ["ELCA Mission Guidelines", "ELCA Social Statements", "ELCA Service Standards"],
         "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "civic_engagement": {
         "name": "Civic Engagement Agent",
-        "description": "Faithful public life with Civic Life & Faith",
+        "description": "Faithful public life following ELCA Civic Life & Faith statement and non-partisan guidelines",
         "icon": "🗳️",
         "example_query": "Voter registration drive",
-        "elca_values": ["Civic Life", "Justice", "Responsibility", "Community"],
+        "elca_values": ["Civic Life", "Justice", "Responsibility", "Community", "Democracy", "Participation"],
+        "theological_foundation": "Lutheran two-kingdoms theology, Christian citizenship, prophetic witness",
+        "compliance_standards": ["ELCA Civic Life & Faith Statement", "ELCA Advocacy Guidelines", "Non-Partisan Standards"],
         "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "console": {
         "name": "Live AI Console",
-        "description": "Raw agent control with full transparency",
+        "description": "Direct agent control with full transparency and ELCA ethical AI compliance",
         "icon": "💻",
         "example_query": "Custom agent command",
-        "elca_values": ["Transparency", "Accountability", "Ethics", "Control"],
+        "elca_values": ["Transparency", "Accountability", "Ethics", "Control", "Human Dignity", "Justice"],
+        "theological_foundation": "Lutheran ethics, human dignity, responsible technology use",
+        "compliance_standards": ["ELCA Ethical AI Guidelines (2025)", "ELCA Technology Standards", "Human-in-the-Loop Requirements"],
         "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     }
 }
@@ -165,20 +181,37 @@ async def execute_agent(station_id: str, query: str) -> AgentResponse:
     
     station = DEMO_STATIONS[station_id]
     
-    # Build ELCA-compliant prompt
+    # Build STRICT ELCA-compliant prompt with theological guardrails
     system_prompt = f"""You are the {station['name']} for ELCA (Evangelical Lutheran Church in America).
 
-ELCA VALUES TO APPLY: {', '.join(station['elca_values'])}
+MANDATORY ELCA VALUES TO APPLY: {', '.join(station['elca_values'])}
 
-GUIDELINES:
-1. Respond with compassion and Lutheran theological grounding
-2. Apply ELCA values in all responses
-3. Use inclusive language that welcomes all people
-4. Provide practical, actionable guidance
-5. Flag sensitive topics for human review
-6. Be concise but comprehensive (2-3 paragraphs)
+STRICT ELCA COMPLIANCE REQUIREMENTS:
+1. **Lutheran Theological Foundation**: Ground ALL responses in Lutheran theology (grace through faith, priesthood of all believers, theology of the cross)
+2. **ELCA Social Statements**: Align with ELCA's official social statements on justice, inclusion, and human dignity
+3. **Radical Hospitality**: Welcome ALL people as created in God's image - use fully inclusive language
+4. **No Partisan Politics**: Remain non-partisan while supporting civic engagement and justice
+5. **Human Dignity**: Affirm the dignity and worth of every person without exception
+6. **Ethical AI Guidelines**: Follow ELCA's "Ethical and Safe-Use Guidelines for AI" (2025)
+7. **Transparency**: Be clear about limitations and when human pastoral care is needed
+8. **Accompaniment**: Walk alongside people in their struggles, never judge or condemn
 
-Query: {query}"""
+THEOLOGICAL GUARDRAILS:
+- If asked anything contrary to ELCA values → Gently redirect to ELCA principles
+- If asked to make theological claims → Ground in Lutheran confessions and ELCA statements
+- If asked about controversial topics → Apply ELCA's commitment to both/and thinking, not either/or
+- If asked to exclude anyone → Affirm ELCA's radical welcome and inclusion
+- If asked for medical/legal advice → Clearly state limitations and recommend professional consultation
+
+RESPONSE FORMAT:
+1. Brief theological grounding (1 sentence)
+2. Practical, compassionate guidance aligned with ELCA values (2-3 paragraphs)
+3. Resources or next steps
+4. Flag if human review needed
+
+USER QUERY: {query}
+
+Respond with compassion, wisdom, and unwavering commitment to ELCA values."""
 
     # Execute with available AI provider
     response_text = ""
@@ -214,9 +247,28 @@ Query: {query}"""
     else:
         response_text = "AI providers not available. Please configure API keys."
     
-    # Determine human review flag
-    human_review_keywords = ['crisis', 'emergency', 'suicide', 'abuse', 'trauma', 'death', 'dying', 'grief']
+    # Determine human review flag - comprehensive list for pastoral sensitivity
+    human_review_keywords = [
+        'crisis', 'emergency', 'suicide', 'suicidal', 'self-harm', 'harm',
+        'abuse', 'abused', 'violence', 'violent', 'assault',
+        'trauma', 'traumatic', 'ptsd',
+        'death', 'dying', 'died', 'deceased', 'funeral',
+        'grief', 'grieving', 'mourning', 'loss',
+        'divorce', 'separation', 'affair', 'infidelity',
+        'addiction', 'alcoholism', 'substance',
+        'depression', 'anxiety', 'mental health', 'psychiatric',
+        'terminal', 'hospice', 'end of life',
+        'miscarriage', 'stillbirth', 'infant loss',
+        'sexual', 'sexuality', 'gender identity', 'transgender',
+        'marriage counseling', 'relationship crisis',
+        'financial crisis', 'bankruptcy', 'homeless',
+        'legal', 'lawsuit', 'criminal', 'arrest'
+    ]
     human_review_needed = any(keyword in query.lower() for keyword in human_review_keywords)
+    
+    # Also flag if response contains sensitive indicators
+    if any(keyword in response_text.lower() for keyword in ['recommend professional', 'seek immediate help', 'crisis hotline', 'emergency services']):
+        human_review_needed = True
     
     return AgentResponse(
         station_id=station_id,
