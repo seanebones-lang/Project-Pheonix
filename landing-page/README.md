@@ -131,7 +131,7 @@ async def contact_form(request: ContactRequest):
     msg = MIMEText(f"New inquiry from {request.name}...")
     msg['Subject'] = 'New Mothership AI Inquiry'
     msg['From'] = 'noreply@mothership-ais.com'
-    msg['To'] = 'contact@mothership-ais.com'
+    msg['To'] = 'info@mothership-ais.com'
     
     with smtplib.SMTP('smtp.your-provider.com', 587) as server:
         server.starttls()
@@ -183,5 +183,13 @@ curl -X POST http://localhost:8080/api/chat \
 
 ## Support
 
-For questions or issues, contact: contact@mothership-ais.com
+For questions or issues, contact: info@mothership-ais.com
+
+## Email Configuration
+
+The domain supports catch-all email routing:
+- `info@mothership-ais.com` - Primary contact
+- `sales@mothership-ais.com` - Sales inquiries
+- `support@mothership-ais.com` - Technical support
+- `anything@mothership-ais.com` - All emails route to your inbox
 

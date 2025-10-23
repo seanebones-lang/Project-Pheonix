@@ -576,7 +576,7 @@
                     <button type="submit" class="cta-button" style="width: 100%;">Send Inquiry</button>
                     
                     <p style="margin-top: 20px; font-size: 0.9rem; color: var(--text-secondary); text-align: center;">
-                        Or email us directly at <a href="mailto:contact@mothership-ais.com">contact@mothership-ais.com</a>
+                        Or email us directly at <a href="mailto:info@mothership-ais.com">info@mothership-ais.com</a>
                     </p>
                 </form>
             </div>
@@ -735,7 +735,7 @@
                 // Fallback to mailto if API fails
                 const subject = encodeURIComponent(`Mothership AI Inquiry from ${formData.name}`);
                 const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nOrganization: ${formData.organization}\nIndustry: ${formData.industry}\n\nMessage:\n${formData.message}`);
-                window.location.href = `mailto:contact@mothership-ais.com?subject=${subject}&body=${body}`;
+                window.location.href = `mailto:info@mothership-ais.com?subject=${subject}&body=${body}`;
             }
         });
     </script>

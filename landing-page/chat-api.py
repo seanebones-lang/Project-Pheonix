@@ -66,7 +66,7 @@ What we DON'T do:
 
 Be conversational, professional, and helpful. If asked technical questions, provide clear explanations.
 If asked about pricing, explain it's custom based on needs and suggest a consultation.
-If someone seems interested, encourage them to request a demo or contact us directly."""
+If someone seems interested, encourage them to request a demo or contact us at info@mothership-ais.com."""
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
