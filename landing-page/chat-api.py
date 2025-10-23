@@ -91,18 +91,18 @@ def check_faq(message: str) -> str:
 
 @app.post("/api/chat", response_model=ChatResponse)
 @limiter.limit("5/minute")  # Rate limiting (Optimization #1)
-async def chat(req: Request, request: ChatRequest):
+async def chat(request: Request, chat_request: ChatRequest):
     """
     Handle chat messages from the landing page widget with optimizations
     """
     try:
         # Check FAQ cache first (Optimization #2)
-        faq_response = check_faq(request.message)
+        faq_response = check_faq(chat_request.message)
         if faq_response:
             return ChatResponse(response=faq_response)
         
         # Check response cache (Optimization #2)
-        cache_key = get_cache_key(request.message)
+        cache_key = get_cache_key(chat_request.message)
         if cache_key in RESPONSE_CACHE:
             cached_data = RESPONSE_CACHE[cache_key]
             if time.time() - cached_data['timestamp'] < CACHE_TTL:
@@ -118,7 +118,7 @@ async def chat(req: Request, request: ChatRequest):
             messages=[
                 {
                     "role": "user",
-                    "content": request.message
+                    "content": chat_request.message
                 }
             ]
         )
