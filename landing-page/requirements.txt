@@ -5,4 +5,5 @@ anthropic==0.71.0
 python-dotenv==1.1.1
 pydantic==2.12.3
 slowapi==0.1.9
+gunicorn==21.2.0  # Production server for zero downtime
 

@@ -108,11 +108,12 @@ async def chat(req: Request, request: ChatRequest):
             if time.time() - cached_data['timestamp'] < CACHE_TTL:
                 return ChatResponse(response=cached_data['response'])
         
-        # Call Claude Haiku (Optimization #4 - 5x cheaper than Sonnet)
+        # Call Claude Haiku with extended timeout (Optimization #4 - 5x cheaper than Sonnet)
         message = client.messages.create(
             model="claude-3-5-haiku-20241022",  # Haiku model
             max_tokens=800,  # Reduced for cost optimization
             temperature=0.6,
+            timeout=60.0,  # 60 second timeout to prevent issues
             system=SYSTEM_PROMPT,
             messages=[
                 {
@@ -166,5 +167,11 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=port,
+        timeout_keep_alive=75,  # Keep connections alive longer
+        timeout_graceful_shutdown=30  # Graceful shutdown timeout
+    )
 

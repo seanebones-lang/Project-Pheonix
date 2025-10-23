@@ -1,0 +1,23 @@
+# Render.com configuration for Mothership AI Landing Page API
+services:
+  - type: web
+    name: mothership-landing-api
+    env: python
+    region: oregon
+    plan: starter  # Upgrade from free for zero downtime
+    branch: main
+    rootDir: landing-page
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn chat-api:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120 --keep-alive 75 --graceful-timeout 30
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: PORT
+        value: 10000
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: WEB_CONCURRENCY
+        value: 2
+
