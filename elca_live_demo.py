@@ -59,7 +59,7 @@ DEMO_STATIONS = {
         "icon": "🙏",
         "example_query": "Help a member grieving a spouse",
         "elca_values": ["Grace", "Accompaniment", "Compassion", "Healing"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "worship_planning": {
         "name": "Worship Planning Agent",
@@ -67,7 +67,7 @@ DEMO_STATIONS = {
         "icon": "⛪",
         "example_query": "Plan service for Advent 2",
         "elca_values": ["Worship", "Community", "Inclusion", "Tradition"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "member_engagement": {
         "name": "Member Engagement Agent",
@@ -75,7 +75,7 @@ DEMO_STATIONS = {
         "icon": "🤝",
         "example_query": "Create Christmas newsletter",
         "elca_values": ["Hospitality", "Inclusion", "Community", "Service"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "education": {
         "name": "Education Agent",
@@ -83,7 +83,7 @@ DEMO_STATIONS = {
         "icon": "📚",
         "example_query": "Confirmation lesson on Baptism",
         "elca_values": ["Faith Formation", "Learning", "Wisdom", "Growth"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "administration": {
         "name": "Administration Agent",
@@ -91,7 +91,7 @@ DEMO_STATIONS = {
         "icon": "📋",
         "example_query": "Schedule volunteers for event",
         "elca_values": ["Stewardship", "Service", "Organization", "Efficiency"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "mission": {
         "name": "Mission & Outreach Agent",
@@ -99,7 +99,7 @@ DEMO_STATIONS = {
         "icon": "🌍",
         "example_query": "Plan food pantry outreach",
         "elca_values": ["Justice", "Service", "Compassion", "Community"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "civic_engagement": {
         "name": "Civic Engagement Agent",
@@ -107,7 +107,7 @@ DEMO_STATIONS = {
         "icon": "🗳️",
         "example_query": "Voter registration drive",
         "elca_values": ["Civic Life", "Justice", "Responsibility", "Community"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "console": {
         "name": "Live AI Console",
@@ -115,7 +115,7 @@ DEMO_STATIONS = {
         "icon": "💻",
         "example_query": "Custom agent command",
         "elca_values": ["Transparency", "Accountability", "Ethics", "Control"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     }
 }
 
