@@ -6,4 +6,5 @@ python-dotenv==1.1.1
 pydantic==2.12.3
 slowapi==0.1.9
 gunicorn==21.2.0  # Production server for zero downtime
+twilio==9.0.4  # SMS functionality for Tom's admin access
 

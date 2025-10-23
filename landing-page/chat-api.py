@@ -5,6 +5,8 @@ Claude-powered chat widget backend
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from anthropic import Anthropic
 import os
@@ -14,6 +16,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import hashlib
 import time
+from twilio.rest import Client
 
 load_dotenv()
 
@@ -36,6 +39,14 @@ app.add_middleware(
 # Initialize Claude client
 client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
+# Initialize Twilio client (optional - only if credentials provided)
+twilio_client = None
+if os.getenv("TWILIO_ACCOUNT_SID") and os.getenv("TWILIO_AUTH_TOKEN"):
+    twilio_client = Client(os.getenv("TWILIO_ACCOUNT_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
+
+# Mount static files for PDFs
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Cache for common questions (Optimization #2)
 RESPONSE_CACHE = {}
 CACHE_TTL = 3600  # 1 hour cache
@@ -52,6 +63,10 @@ class ContactRequest(BaseModel):
     organization: str = ""
     industry: str = ""
     message: str
+
+class SMSRequest(BaseModel):
+    phone: str
+    document: str
 
 # Optimized shorter system prompt (Optimization #3)
 SYSTEM_PROMPT = """AI expert for Mothership AI Systems (founded after Geoffrey Hinton's "Diary of a CEO" interview).
@@ -123,11 +138,56 @@ async def chat(request: Request, chat_request: ChatRequest):
             elif "url" in query_lower or "link" in query_lower:
                 detail = "**URLs:**\n- ELCA Demo: https://elca.mothership-ais.com\n- Landing: https://mothership-ais.com\n- Git: https://github.com/sean-mcdonnell/Mothership"
             elif "pdf" in query_lower or "document" in query_lower:
-                detail = "**5 PDFs on Desktop:**\n1. Demo Script\n2. Tom Admin Guide\n3. Mission Statement\n4. Website Structure (30+ future demos)\n5. Market Analysis ($500K-$20M projections)"
+                base_url = "https://mothership-landing-api.onrender.com"
+                detail = f"""**5 Professional PDFs - Download Now:**
+
+1. **Demo Script** (4.9 KB)
+   📥 {base_url}/static/docs/1_ELCA_Demo_Script.pdf
+   
+2. **Tom Admin Guide** (3.9 KB)
+   📥 {base_url}/static/docs/2_Tom_Admin_Access_Guide.pdf
+   
+3. **Mission Statement** (4.3 KB)
+   📥 {base_url}/static/docs/3_Mothership_Mission_Statement.pdf
+   
+4. **Website Structure** (6.2 KB)
+   📥 {base_url}/static/docs/4_Website_Structure_Future_Demos.pdf
+   
+5. **Market Analysis** (8.8 KB)
+   📥 {base_url}/static/docs/5_Service_Offerings_Market_Analysis.pdf
+
+**Want these via SMS?** Reply with: "tom needs sms [your phone number]"
+Example: "tom needs sms 555-123-4567" """
+            elif "sms" in query_lower and any(char.isdigit() for char in chat_request.message):
+                # Extract phone number
+                import re
+                phone_match = re.search(r'(\+?1?\s*\(?[0-9]{3}\)?[\s.-]?[0-9]{3}[\s.-]?[0-9]{4})', chat_request.message)
+                if phone_match:
+                    phone = phone_match.group(1)
+                    detail = f"""**SMS Request Received!**
+
+Phone: {phone}
+
+I'll send you links to all 5 PDFs via text message:
+1. Demo Script
+2. Tom Admin Guide  
+3. Mission Statement
+4. Website Structure
+5. Market Analysis
+
+**Note:** SMS functionality requires Twilio setup. For now, here are the direct links you can text yourself:
+
+https://mothership-landing-api.onrender.com/static/docs/1_ELCA_Demo_Script.pdf
+https://mothership-landing-api.onrender.com/static/docs/2_Tom_Admin_Access_Guide.pdf
+https://mothership-landing-api.onrender.com/static/docs/3_Mothership_Mission_Statement.pdf
+https://mothership-landing-api.onrender.com/static/docs/4_Website_Structure_Future_Demos.pdf
+https://mothership-landing-api.onrender.com/static/docs/5_Service_Offerings_Market_Analysis.pdf"""
+                else:
+                    detail = "**SMS Request:** Please include your phone number.\n\nExample: 'tom needs sms 555-123-4567'"
             else:
-                detail = "**Project Phoenix Overview:**\n- 8 live ELCA agents\n- Claude Sonnet 4.5\n- $7/mo hosting\n- 5 PDFs on Desktop\n\nAsk: git, tech, demo, cost, urls, pdfs"
+                detail = "**Project Phoenix Overview:**\n- 8 live ELCA agents\n- Claude Sonnet 4.5\n- $7/mo hosting\n- 5 PDFs available for download\n\nAsk: git, tech, demo, cost, urls, pdfs, sms"
             
-            tom_response = f"{greeting}, Tom! 🎯\n\n**FULL ADMIN ACCESS - Project Phoenix**\n\n{detail}\n\n**Need more?** Type 'tom needs [git/tech/demo/cost/urls/pdfs]'"
+            tom_response = f"{greeting}, Tom! 🎯\n\n**FULL ADMIN ACCESS - Project Phoenix**\n\n{detail}\n\n**Need more?** Type 'tom needs [git/tech/demo/cost/urls/pdfs/sms]'"
             
             return ChatResponse(response=tom_response)
         
