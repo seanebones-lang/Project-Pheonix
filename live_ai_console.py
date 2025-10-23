@@ -4,21 +4,57 @@ ELCA Mothership AIs - LIVE AI CONSOLE
 Interactive console with all agents visible and functional for live demo.
 """
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException, Depends, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import json
 import asyncio
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+import jwt
+from passlib.context import CryptContext
 
 # Load environment variables
 load_dotenv()
+
+# Authentication Setup
+SECRET_KEY = os.getenv("SECRET_KEY", "elca-mothership-secret-key-2025")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Security
+security = HTTPBearer()
+
+# Simple user database (in production, use a real database)
+USERS_DB = {
+    "admin": {
+        "username": "admin",
+        "hashed_password": pwd_context.hash("elca2025"),
+        "role": "admin",
+        "congregation": "Global ELCA Community"
+    },
+    "pastor": {
+        "username": "pastor", 
+        "hashed_password": pwd_context.hash("pastor2025"),
+        "role": "pastor",
+        "congregation": "Sample Lutheran Church"
+    },
+    "member": {
+        "username": "member",
+        "hashed_password": pwd_context.hash("member2025"), 
+        "role": "member",
+        "congregation": "Sample Lutheran Church"
+    }
+}
 
 # AI Integration
 try:
@@ -329,6 +365,15 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # Pydantic models
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user_info: Dict[str, Any]
+
 class AgentRequest(BaseModel):
     agent_id: str
     query: str
@@ -342,6 +387,52 @@ class AgentResponse(BaseModel):
     timestamp: datetime
     model_used: str
     human_review_needed: bool = False
+
+# Authentication functions
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_user(username: str):
+    if username in USERS_DB:
+        user_dict = USERS_DB[username]
+        return user_dict
+    return None
+
+def authenticate_user(username: str, password: str):
+    user = get_user(username)
+    if not user:
+        return False
+    if not verify_password(password, user["hashed_password"]):
+        return False
+    return user
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except jwt.PyJWTError:
+        raise credentials_exception
+    user = get_user(username)
+    if user is None:
+        raise credentials_exception
+    return user
 
 # AI Execution Functions
 async def execute_openai_agent(agent_config: Dict, query: str, context: Dict = None) -> str:
@@ -492,6 +583,30 @@ async def execute_agent(agent_id: str, query: str, context: Dict = None) -> Agen
     )
 
 # Routes
+@app.post("/api/login", response_model=Token)
+async def login(login_request: LoginRequest):
+    """Login endpoint for global access"""
+    user = authenticate_user(login_request.username, login_request.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user["username"]}, expires_delta=access_token_expires
+    )
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_info": {
+            "username": user["username"],
+            "role": user["role"],
+            "congregation": user["congregation"]
+        }
+    }
+
 @app.get("/", response_class=HTMLResponse)
 async def live_console():
     """Live AI Console Interface"""
@@ -510,149 +625,159 @@ async def live_console():
             }
             
             body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #ffffff;
                 min-height: 100vh;
-                color: #333;
+                color: #000000;
+                line-height: 1.6;
             }
             
             .container {
                 max-width: 1400px;
                 margin: 0 auto;
-                padding: 20px;
+                padding: 40px 20px;
             }
             
             .header {
                 text-align: center;
-                color: white;
-                margin-bottom: 30px;
+                margin-bottom: 40px;
+                border-bottom: 2px solid #e5e5e5;
+                padding-bottom: 30px;
             }
             
             .header h1 {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
+                font-weight: 300;
                 margin-bottom: 10px;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                color: #000000;
+                letter-spacing: -0.5px;
             }
             
             .header p {
-                font-size: 1.2rem;
-                opacity: 0.9;
+                font-size: 1rem;
+                color: #666666;
+                font-weight: 400;
             }
             
             .console-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 20px;
-                margin-bottom: 20px;
+                gap: 30px;
+                margin-bottom: 30px;
             }
             
             .agents-panel {
-                background: white;
-                border-radius: 15px;
-                padding: 20px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                background: #ffffff;
+                border: 1px solid #e5e5e5;
+                padding: 30px;
             }
             
             .agents-panel h2 {
-                color: #4a5568;
-                margin-bottom: 20px;
-                font-size: 1.5rem;
+                color: #000000;
+                margin-bottom: 25px;
+                font-size: 1.3rem;
+                font-weight: 400;
+                border-bottom: 1px solid #e5e5e5;
+                padding-bottom: 10px;
             }
             
             .agent-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 15px;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
             }
             
             .agent-card {
-                border: 2px solid #e2e8f0;
-                border-radius: 10px;
-                padding: 15px;
+                border: 1px solid #e5e5e5;
+                padding: 20px;
                 cursor: pointer;
-                transition: all 0.3s ease;
-                background: #f8fafc;
+                transition: all 0.2s ease;
+                background: #ffffff;
             }
             
             .agent-card:hover {
-                border-color: #667eea;
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+                border-color: #000000;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             }
             
             .agent-card.selected {
-                border-color: #667eea;
-                background: #e6f3ff;
+                border-color: #000000;
+                background: #f8f8f8;
             }
             
             .agent-header {
                 display: flex;
                 align-items: center;
-                margin-bottom: 10px;
+                margin-bottom: 12px;
             }
             
             .agent-icon {
-                font-size: 1.5rem;
-                margin-right: 10px;
+                font-size: 1.2rem;
+                margin-right: 12px;
+                color: #666666;
             }
             
             .agent-name {
-                font-weight: bold;
-                color: #2d3748;
+                font-weight: 500;
+                color: #000000;
+                font-size: 1rem;
             }
             
             .agent-description {
                 font-size: 0.9rem;
-                color: #718096;
-                margin-bottom: 10px;
+                color: #666666;
+                margin-bottom: 15px;
+                line-height: 1.5;
             }
             
             .agent-values {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 5px;
+                gap: 6px;
+                margin-bottom: 15px;
             }
             
             .value-tag {
-                background: #667eea;
-                color: white;
-                padding: 2px 8px;
-                border-radius: 12px;
-                font-size: 0.8rem;
+                background: #f0f0f0;
+                color: #000000;
+                padding: 3px 8px;
+                font-size: 0.75rem;
+                border: 1px solid #e5e5e5;
             }
             
             .agent-compliance {
-                margin-top: 10px;
-                padding-top: 10px;
-                border-top: 1px solid #e2e8f0;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid #e5e5e5;
             }
             
             .compliance-header {
-                font-size: 0.8rem;
-                font-weight: bold;
-                color: #38a169;
-                margin-bottom: 5px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                color: #000000;
+                margin-bottom: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
             
             .compliance-items {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 3px;
+                gap: 4px;
             }
             
             .compliance-tag {
-                background: #c6f6d5;
-                color: #22543d;
-                padding: 1px 6px;
-                border-radius: 8px;
+                background: #f8f8f8;
+                color: #666666;
+                padding: 2px 6px;
                 font-size: 0.7rem;
+                border: 1px solid #e5e5e5;
             }
             
             .chat-panel {
-                background: white;
-                border-radius: 15px;
-                padding: 20px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                background: #ffffff;
+                border: 1px solid #e5e5e5;
+                padding: 30px;
                 display: flex;
                 flex-direction: column;
                 height: 600px;
@@ -660,145 +785,251 @@ async def live_console():
             
             .chat-header {
                 display: flex;
-                justify-content: between;
+                justify-content: space-between;
                 align-items: center;
-                margin-bottom: 20px;
+                margin-bottom: 25px;
                 padding-bottom: 15px;
-                border-bottom: 2px solid #e2e8f0;
+                border-bottom: 1px solid #e5e5e5;
             }
             
             .selected-agent {
-                font-weight: bold;
-                color: #667eea;
+                font-weight: 500;
+                color: #000000;
             }
             
             .chat-messages {
                 flex: 1;
                 overflow-y: auto;
-                margin-bottom: 20px;
-                padding: 10px;
-                background: #f8fafc;
-                border-radius: 10px;
-                border: 1px solid #e2e8f0;
+                margin-bottom: 25px;
+                padding: 15px;
+                background: #f8f8f8;
+                border: 1px solid #e5e5e5;
             }
             
             .message {
-                margin-bottom: 15px;
-                padding: 10px;
-                border-radius: 10px;
+                margin-bottom: 20px;
+                padding: 15px;
                 max-width: 80%;
             }
             
             .message.user {
-                background: #667eea;
-                color: white;
+                background: #000000;
+                color: #ffffff;
                 margin-left: auto;
             }
             
             .message.agent {
-                background: white;
-                border: 1px solid #e2e8f0;
+                background: #ffffff;
+                border: 1px solid #e5e5e5;
             }
             
             .message-header {
-                font-weight: bold;
-                margin-bottom: 5px;
-                font-size: 0.9rem;
+                font-weight: 500;
+                margin-bottom: 8px;
+                font-size: 0.85rem;
+                color: #666666;
             }
             
             .message-content {
-                line-height: 1.5;
+                line-height: 1.6;
+                font-size: 0.9rem;
             }
             
             .chat-input {
                 display: flex;
-                gap: 10px;
+                gap: 12px;
             }
             
             .chat-input input {
                 flex: 1;
-                padding: 12px;
-                border: 2px solid #e2e8f0;
-                border-radius: 10px;
-                font-size: 1rem;
+                padding: 12px 15px;
+                border: 1px solid #e5e5e5;
+                font-size: 0.9rem;
                 outline: none;
+                background: #ffffff;
             }
             
             .chat-input input:focus {
-                border-color: #667eea;
+                border-color: #000000;
             }
             
             .chat-input button {
-                padding: 12px 24px;
-                background: #667eea;
-                color: white;
+                padding: 12px 20px;
+                background: #000000;
+                color: #ffffff;
                 border: none;
-                border-radius: 10px;
                 cursor: pointer;
-                font-size: 1rem;
-                transition: background 0.3s ease;
+                font-size: 0.9rem;
+                transition: background 0.2s ease;
             }
             
             .chat-input button:hover {
-                background: #5a67d8;
+                background: #333333;
             }
             
             .chat-input button:disabled {
-                background: #a0aec0;
+                background: #cccccc;
                 cursor: not-allowed;
             }
             
             .status-bar {
-                background: white;
-                border-radius: 15px;
-                padding: 15px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-                margin-top: 20px;
+                background: #ffffff;
+                border: 1px solid #e5e5e5;
+                padding: 20px;
+                margin-top: 30px;
             }
             
             .status-item {
                 display: inline-block;
-                margin-right: 20px;
-                padding: 5px 10px;
-                background: #f0f4f8;
-                border-radius: 20px;
-                font-size: 0.9rem;
+                margin-right: 25px;
+                padding: 6px 12px;
+                background: #f8f8f8;
+                border: 1px solid #e5e5e5;
+                font-size: 0.85rem;
+                color: #666666;
             }
             
             .status-item.connected {
-                background: #c6f6d5;
-                color: #22543d;
+                background: #f0f0f0;
+                color: #000000;
+                border-color: #000000;
             }
             
             .status-item.error {
-                background: #fed7d7;
-                color: #742a2a;
+                background: #f8f8f8;
+                color: #666666;
+                border-color: #cccccc;
             }
             
             .loading {
                 display: none;
                 text-align: center;
-                color: #667eea;
+                color: #666666;
                 font-style: italic;
+                font-size: 0.9rem;
             }
             
             .human-review {
-                background: #fff3cd;
-                border: 1px solid #ffeaa7;
-                border-radius: 10px;
-                padding: 10px;
-                margin-top: 10px;
+                background: #f8f8f8;
+                border: 1px solid #e5e5e5;
+                padding: 12px;
+                margin-top: 12px;
+                font-size: 0.85rem;
+                color: #666666;
+            }
+            
+            .login-form {
+                max-width: 400px;
+                margin: 0 auto;
+                background: #ffffff;
+                border: 1px solid #e5e5e5;
+                padding: 40px;
+                text-align: center;
+            }
+            
+            .login-form h2 {
+                font-size: 1.5rem;
+                font-weight: 400;
+                margin-bottom: 10px;
+                color: #000000;
+            }
+            
+            .login-form p {
+                color: #666666;
+                margin-bottom: 30px;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+                text-align: left;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: 500;
+                color: #000000;
+            }
+            
+            .form-group input {
+                width: 100%;
+                padding: 12px 15px;
+                border: 1px solid #e5e5e5;
                 font-size: 0.9rem;
-                color: #856404;
+                outline: none;
+            }
+            
+            .form-group input:focus {
+                border-color: #000000;
+            }
+            
+            .login-form button {
+                width: 100%;
+                padding: 12px;
+                background: #000000;
+                color: #ffffff;
+                border: none;
+                cursor: pointer;
+                font-size: 0.9rem;
+                margin-bottom: 20px;
+            }
+            
+            .login-form button:hover {
+                background: #333333;
+            }
+            
+            .demo-credentials {
+                background: #f8f8f8;
+                border: 1px solid #e5e5e5;
+                padding: 20px;
+                text-align: left;
+            }
+            
+            .demo-credentials h3 {
+                font-size: 1rem;
+                margin-bottom: 10px;
+                color: #000000;
+            }
+            
+            .demo-credentials p {
+                margin-bottom: 5px;
+                font-size: 0.85rem;
+                color: #666666;
             }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🎯 ELCA Mothership AIs - Live Console</h1>
-                <p>Interactive AI Agents for Lutheran Ministry</p>
+                <h1>ELCA Mothership AIs - Live Console</h1>
+                <p>Interactive AI Agents for Lutheran Ministry - Global Access</p>
             </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="login-form">
+                <h2>Global Access Login</h2>
+                <p>Access the ELCA Mothership AIs from anywhere in the world</p>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+                <div class="demo-credentials">
+                    <h3>Demo Credentials:</h3>
+                    <p><strong>Admin:</strong> admin / elca2025</p>
+                    <p><strong>Pastor:</strong> pastor / pastor2025</p>
+                    <p><strong>Member:</strong> member / member2025</p>
+                </div>
+            </div>
+            
+            <!-- Main Console (hidden initially) -->
+            <div id="mainConsole" style="display: none;">
             
             <div class="console-grid">
                 <div class="agents-panel">
@@ -836,12 +1067,16 @@ async def live_console():
                 <div class="status-item" id="connectionStatus">🔌 Connecting...</div>
                 <div class="status-item" id="aiStatus">🤖 AI Status: Checking...</div>
                 <div class="status-item" id="agentCount">Agents: 8</div>
+                <div class="status-item" id="userInfo">User: Not logged in</div>
             </div>
+            </div> <!-- End mainConsole -->
         </div>
 
         <script>
             let selectedAgent = null;
             let websocket = null;
+            let authToken = null;
+            let currentUser = null;
             
             // Initialize the console
             async function initConsole() {
@@ -849,6 +1084,45 @@ async def live_console():
                 setupWebSocket();
                 setupEventListeners();
                 updateAIStatus();
+            }
+            
+            // Handle login
+            async function handleLogin(event) {
+                event.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        authToken = data.access_token;
+                        currentUser = data.user_info;
+                        
+                        // Hide login form and show console
+                        document.getElementById('loginForm').style.display = 'none';
+                        document.getElementById('mainConsole').style.display = 'block';
+                        
+                        // Update user info in status bar
+                        document.getElementById('userInfo').textContent = 
+                            `User: ${currentUser.username} (${currentUser.role})`;
+                        
+                        // Initialize console
+                        await initConsole();
+                    } else {
+                        alert('Login failed. Please check your credentials.');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('Login failed. Please try again.');
+                }
             }
             
             // Load agents from API
@@ -982,6 +1256,7 @@ async def live_console():
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
                         },
                         body: JSON.stringify({
                             agent_id: selectedAgent,
@@ -1071,30 +1346,38 @@ async def live_console():
             }
             
             // Initialize when page loads
-            document.addEventListener('DOMContentLoaded', initConsole);
+            document.addEventListener('DOMContentLoaded', () => {
+                // Setup login form
+                document.getElementById('loginFormElement').addEventListener('submit', handleLogin);
+            });
         </script>
     </body>
     </html>
     """
 
 @app.get("/api/agents")
-async def get_agents():
-    """Get all available agents"""
+async def get_agents(current_user: dict = Depends(get_current_user)):
+    """Get all available agents (requires authentication)"""
     return ELCA_AGENTS
 
 @app.get("/api/status")
-async def get_status():
-    """Get system status"""
+async def get_status(current_user: dict = Depends(get_current_user)):
+    """Get system status (requires authentication)"""
     return {
         "openai_available": OPENAI_AVAILABLE and openai_client is not None,
         "claude_available": CLAUDE_AVAILABLE and claude_client is not None,
         "agents_count": len(ELCA_AGENTS),
-        "websocket_connections": len(manager.active_connections)
+        "websocket_connections": len(manager.active_connections),
+        "user_info": {
+            "username": current_user["username"],
+            "role": current_user["role"],
+            "congregation": current_user["congregation"]
+        }
     }
 
 @app.post("/api/execute-agent")
-async def execute_agent_endpoint(request: AgentRequest):
-    """Execute an agent with the given query"""
+async def execute_agent_endpoint(request: AgentRequest, current_user: dict = Depends(get_current_user)):
+    """Execute an agent with the given query (requires authentication)"""
     try:
         result = await execute_agent(request.agent_id, request.query, request.context)
         
@@ -1107,7 +1390,8 @@ async def execute_agent_endpoint(request: AgentRequest):
             "elca_values_applied": result.elca_values_applied,
             "timestamp": result.timestamp.isoformat(),
             "model_used": result.model_used,
-            "human_review_needed": result.human_review_needed
+            "human_review_needed": result.human_review_needed,
+            "user": current_user["username"]
         }))
         
         return result
