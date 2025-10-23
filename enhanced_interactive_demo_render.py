@@ -61,7 +61,7 @@ DEMO_STATIONS = {
         "elca_values": ["Grace", "Accompaniment", "Compassion", "Healing", "Dignity", "Inclusion"],
         "theological_foundation": "Lutheran theology of the cross, grace through faith, priesthood of all believers",
         "compliance_standards": ["ELCA Guidelines for Ministry", "ELCA Social Statement on Mental Health", "Professional Standards for Rostered Ministers"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "worship_planning": {
         "name": "Worship Planning Agent",
@@ -71,7 +71,7 @@ DEMO_STATIONS = {
         "elca_values": ["Worship", "Community", "Inclusion", "Tradition", "Accessibility", "Excellence"],
         "theological_foundation": "Lutheran liturgical theology, Word and Sacrament ministry, liturgical calendar",
         "compliance_standards": ["ELCA Worship Guidelines", "Evangelical Lutheran Worship (ELW)", "ELCA Accessibility Standards"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "member_engagement": {
         "name": "Member Engagement Agent",
@@ -81,7 +81,7 @@ DEMO_STATIONS = {
         "elca_values": ["Hospitality", "Inclusion", "Community", "Service", "Welcome", "Generosity"],
         "theological_foundation": "Lutheran understanding of Christian community, priesthood of all believers",
         "compliance_standards": ["ELCA Community Guidelines", "ELCA Communication Standards", "ELCA Hospitality Guidelines"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "education": {
         "name": "Education Agent",
@@ -91,7 +91,7 @@ DEMO_STATIONS = {
         "elca_values": ["Faith Formation", "Learning", "Wisdom", "Growth", "Discipleship", "Excellence"],
         "theological_foundation": "Lutheran catechetical tradition, lifelong faith formation, theology of Baptism",
         "compliance_standards": ["ELCA Educational Guidelines", "ELCA Confirmation Guidelines", "Lutheran Confessions"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "administration": {
         "name": "Administration Agent",
@@ -101,7 +101,7 @@ DEMO_STATIONS = {
         "elca_values": ["Stewardship", "Service", "Organization", "Efficiency", "Transparency", "Accountability"],
         "theological_foundation": "Lutheran theology of vocation, stewardship of God's gifts, servant leadership",
         "compliance_standards": ["ELCA Administrative Guidelines", "ELCA Financial Management Standards", "ELCA Volunteer Guidelines"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "mission": {
         "name": "Mission & Outreach Agent",
@@ -111,7 +111,7 @@ DEMO_STATIONS = {
         "elca_values": ["Justice", "Service", "Compassion", "Community", "Solidarity", "Advocacy"],
         "theological_foundation": "Lutheran social ministry, theology of the neighbor, God's preferential option for the poor",
         "compliance_standards": ["ELCA Mission Guidelines", "ELCA Social Statements", "ELCA Service Standards"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "civic_engagement": {
         "name": "Civic Engagement Agent",
@@ -121,7 +121,7 @@ DEMO_STATIONS = {
         "elca_values": ["Civic Life", "Justice", "Responsibility", "Community", "Democracy", "Participation"],
         "theological_foundation": "Lutheran two-kingdoms theology, Christian citizenship, prophetic witness",
         "compliance_standards": ["ELCA Civic Life & Faith Statement", "ELCA Advocacy Guidelines", "Non-Partisan Standards"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     },
     "console": {
         "name": "Live AI Console",
@@ -131,7 +131,7 @@ DEMO_STATIONS = {
         "elca_values": ["Transparency", "Accountability", "Ethics", "Control", "Human Dignity", "Justice"],
         "theological_foundation": "Lutheran ethics, human dignity, responsible technology use",
         "compliance_standards": ["ELCA Ethical AI Guidelines (2025)", "ELCA Technology Standards", "Human-in-the-Loop Requirements"],
-        "model": "claude-3-5-sonnet-20241022" if CLAUDE_AVAILABLE else "gpt-4o-mini"
+        "model": "claude-3-5-sonnet-20240620" if CLAUDE_AVAILABLE else "gpt-4o-mini"
     }
 }
 
