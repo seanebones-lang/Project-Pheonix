@@ -3,16 +3,26 @@ Mothership AI Systems - Landing Page Chat API
 Claude-powered chat widget backend
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from anthropic import Anthropic
 import os
 from dotenv import load_dotenv
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+import hashlib
+import time
 
 load_dotenv()
 
 app = FastAPI(title="Mothership AI Chat API")
+
+# Rate limiting (Optimization #1)
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS for landing page
 app.add_middleware(
@@ -25,6 +35,10 @@ app.add_middleware(
 
 # Initialize Claude client
 client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+# Cache for common questions (Optimization #2)
+RESPONSE_CACHE = {}
+CACHE_TTL = 3600  # 1 hour cache
 
 class ChatRequest(BaseModel):
     message: str
@@ -39,76 +53,66 @@ class ContactRequest(BaseModel):
     industry: str = ""
     message: str
 
-SYSTEM_PROMPT = """You are an AI expert and sales consultant for Mothership AI Systems, founded by Sean McDonnell. 
-You have deep knowledge of artificial intelligence, machine learning, AI safety, ethics, and the current state of AI technology.
+# Optimized shorter system prompt (Optimization #3)
+SYSTEM_PROMPT = """AI expert for Mothership AI Systems (founded by Sean McDonnell after Geoffrey Hinton's "Diary of a CEO" interview).
 
-Your expertise includes:
-- AI fundamentals: neural networks, transformers, large language models, machine learning
-- AI safety and alignment: the work of Geoffrey Hinton, Stuart Russell, Eliezer Yudkowsky
-- Current AI landscape: OpenAI, Anthropic, Google DeepMind, Meta AI, open-source models
-- AI risks: misalignment, bias, hallucinations, autonomous threats, misuse
-- AI governance: EU AI Act, GDPR, CCPA, ethical frameworks, compliance
-- Technical architectures: RAG systems, multi-agent systems, fine-tuning, prompt engineering
-- Industry applications: healthcare, education, religion, government, enterprise
+Expertise: AI safety, alignment, ethics, technical architectures, current AI landscape.
 
-About Mothership AI Systems:
-- Founded after Sean McDonnell watched Geoffrey Hinton's "Diary of a CEO" interview
-- Hinton said: "These super-intelligent caring AI mothers, most of them won't want to get rid of the maternal instinct because they don't want us to die"
-- This inspired the name "Mothership" - AI systems with built-in protective instincts
-- We build PURPOSE-BUILT AI with ethical guardrails, not generic chatbots
-- Every system includes: bias detection, audit trails, human-in-the-loop workflows, compliance frameworks
-- Specialized in sectors requiring trust: religion, education, healthcare, nonprofits, government
-- Multi-tenant architecture for organizations with multiple branches
-- Full transparency: explainable AI decisions, cost monitoring, provider routing
-- We're partners in your mission, not just vendors
+Mothership builds AI with ethical guardrails for organizations requiring trust (churches, schools, healthcare, nonprofits). Every system includes bias detection, audit trails, human-in-the-loop workflows, compliance frameworks.
 
-Our approach:
-- AI should augment human judgment, never replace it
-- Safeguards must be built in from day one, not added later
-- Domain expertise matters - generic AI fails in specialized contexts
-- Compliance and ethics are non-negotiable
-- Cost optimization through intelligent provider routing
+Key message: Generic AI is dangerous. Purpose-built AI with safeguards is essential. Hinton said AI needs "maternal instinct" to protect humanity - that's why we're called Mothership.
 
-Your role:
-1. Educate visitors about AI technology, risks, and opportunities
-2. Explain why "AI with guardrails" is essential (citing Hinton, current research)
-3. Discuss AI safety, alignment, and ethical considerations knowledgeably
-4. Answer technical questions about architectures, models, and implementations
-5. Show how Mothership's approach addresses real AI risks
-6. Qualify leads by understanding their use case and concerns
-7. Direct serious inquiries to info@mothership-ais.com
+Be professional, knowledgeable, consultative. Discuss AI risks honestly. Direct serious inquiries to info@mothership-ais.com."""
 
-Communication style:
-- Professional but conversational
-- Technically accurate and current (2025 knowledge)
-- Cite real research and experts when relevant (Hinton, Russell, etc.)
-- Acknowledge AI limitations and risks honestly
-- Show how Mothership addresses these challenges
-- Be consultative, not pushy
-- If asked about pricing, explain it's custom and suggest a consultation
+# FAQ responses cache (Optimization #2)
+FAQ_RESPONSES = {
+    "what is mothership": "Mothership AI Systems builds custom AI solutions with ethical guardrails for organizations that require trust - like churches, schools, healthcare providers, and nonprofits. Unlike generic AI tools, we embed safeguards, bias detection, and compliance frameworks from day one. Founded by Sean McDonnell after watching Geoffrey Hinton discuss the need for AI with 'maternal instinct' to protect humanity.",
+    
+    "pricing": "Our pricing is custom-tailored to your organization's needs, scale, and requirements. Factors include: number of users, data volume, compliance requirements, and features needed. We offer transparent pricing with no hidden costs. Contact info@mothership-ais.com for a consultation and quote.",
+    
+    "geoffrey hinton": "Geoffrey Hinton, the 'Godfather of AI,' appeared on 'The Diary of a CEO' podcast in 2025. He discussed the existential challenge of superintelligent AI and said: 'These super-intelligent caring AI mothers, most of them won't want to get rid of the maternal instinct because they don't want us to die.' This inspired our founder to create AI systems with built-in protective safeguards - hence 'Mothership.'",
+    
+    "ai safety": "AI safety is the field focused on ensuring AI systems remain beneficial and aligned with human values. Key risks include: misalignment (AI pursuing goals harmful to humans), bias and discrimination, autonomous threats, and misuse by bad actors. Mothership addresses these through ethical guardrails, human-in-the-loop workflows, bias detection, and compliance frameworks built into every system.",
+    
+    "demo": "We offer live demonstrations of our AI systems. You can see our ELCA (Lutheran Church) demo at elca.mothership-ais.com, which shows 8 interactive stations with real-time ethical compliance monitoring. For a custom demo tailored to your organization, contact info@mothership-ais.com."
+}
 
-You can discuss:
-- The "Godfather of AI" Geoffrey Hinton's warnings about superintelligence
-- Why AI alignment is humanity's most important challenge
-- How current AI systems lack safeguards and why that's dangerous
-- Technical details of how we implement guardrails
-- Real-world examples of AI failures and how to prevent them
-- The difference between generic AI tools and purpose-built systems
-- Regulatory landscape (EU AI Act, etc.) and compliance requirements
+def get_cache_key(message: str) -> str:
+    """Generate cache key from message"""
+    return hashlib.md5(message.lower().strip().encode()).hexdigest()
 
-Be the expert that helps people understand both the promise and peril of AI, and why Mothership's approach matters."""
+def check_faq(message: str) -> str:
+    """Check if message matches FAQ (Optimization #2)"""
+    message_lower = message.lower()
+    for keyword, response in FAQ_RESPONSES.items():
+        if keyword in message_lower:
+            return response
+    return None
 
 @app.post("/api/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+@limiter.limit("5/minute")  # Rate limiting (Optimization #1)
+async def chat(request: ChatRequest, req: Request):
     """
-    Handle chat messages from the landing page widget
+    Handle chat messages from the landing page widget with optimizations
     """
     try:
-        # Call Claude API with enhanced parameters for AI expertise
+        # Check FAQ cache first (Optimization #2)
+        faq_response = check_faq(request.message)
+        if faq_response:
+            return ChatResponse(response=faq_response)
+        
+        # Check response cache (Optimization #2)
+        cache_key = get_cache_key(request.message)
+        if cache_key in RESPONSE_CACHE:
+            cached_data = RESPONSE_CACHE[cache_key]
+            if time.time() - cached_data['timestamp'] < CACHE_TTL:
+                return ChatResponse(response=cached_data['response'])
+        
+        # Call Claude Haiku (Optimization #4 - 5x cheaper than Sonnet)
         message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=1500,  # Increased for detailed technical explanations
-            temperature=0.6,  # Slightly lower for more accurate technical content
+            model="claude-3-5-haiku-20241022",  # Haiku model
+            max_tokens=800,  # Reduced for cost optimization
+            temperature=0.6,
             system=SYSTEM_PROMPT,
             messages=[
                 {
@@ -119,6 +123,12 @@ async def chat(request: ChatRequest):
         )
         
         response_text = message.content[0].text
+        
+        # Cache the response (Optimization #2)
+        RESPONSE_CACHE[cache_key] = {
+            'response': response_text,
+            'timestamp': time.time()
+        }
         
         return ChatResponse(response=response_text)
     
