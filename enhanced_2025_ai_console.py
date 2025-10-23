@@ -33,16 +33,8 @@ import csv
 from pathlib import Path
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
-import owlready2
-from langchain import LangChain
-from langgraph import LangGraph
-import pinecone
-import neo4j
-from datadog import initialize, api
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+# Note: Advanced dependencies removed for Render compatibility
+# These can be added in production deployment
 
 # Configure enhanced logging with Datadog integration
 logging.basicConfig(
@@ -55,11 +47,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize Datadog for AI Agents Console
-initialize(
-    api_key=os.getenv("DATADOG_API_KEY"),
-    app_key=os.getenv("DATADOG_APP_KEY")
-)
+# Initialize Datadog for AI Agents Console (if available)
+# initialize(
+#     api_key=os.getenv("DATADOG_API_KEY"),
+#     app_key=os.getenv("DATADOG_APP_KEY")
+# )
 
 # Rate limiting with enhanced security
 limiter = Limiter(key_func=get_remote_address)
@@ -473,12 +465,12 @@ class EnhancedConnectionManager:
                 "hitl_approvals": []
             }
         
-        # Log to Datadog
-        api.Event.create(
-            title="User Connected",
-            text=f"User {user_id} connected to AI Console",
-            tags=["ai-console", "user-connection"]
-        )
+        # Log to Datadog (if available)
+        # api.Event.create(
+        #     title="User Connected",
+        #     text=f"User {user_id} connected to AI Console",
+        #     tags=["ai-console", "user-connection"]
+        # )
         
         logger.info(f"Enhanced connection established. Total: {len(self.active_connections)}")
 
@@ -488,12 +480,12 @@ class EnhancedConnectionManager:
         if user_id and user_id in self.user_sessions:
             del self.user_sessions[user_id]
         
-        # Log to Datadog
-        api.Event.create(
-            title="User Disconnected",
-            text=f"User {user_id} disconnected from AI Console",
-            tags=["ai-console", "user-disconnection"]
-        )
+        # Log to Datadog (if available)
+        # api.Event.create(
+        #     title="User Disconnected",
+        #     text=f"User {user_id} disconnected from AI Console",
+        #     tags=["ai-console", "user-disconnection"]
+        # )
         
         logger.info(f"Enhanced connection closed. Total: {len(self.active_connections)}")
 
@@ -1371,12 +1363,12 @@ async def invoke_enhanced_agent(request: AgentInvocationRequest):
         # Simulate agent processing
         result = await process_agent_request(request)
         
-        # Log to Datadog
-        api.Event.create(
-            title="Agent Invocation",
-            text=f"Agent {request.agent_id} invoked successfully",
-            tags=["ai-console", "agent-invocation", f"risk-{risk_level.lower()}"]
-        )
+        # Log to Datadog (if available)
+        # api.Event.create(
+        #     title="Agent Invocation",
+        #     text=f"Agent {request.agent_id} invoked successfully",
+        #     tags=["ai-console", "agent-invocation", f"risk-{risk_level.lower()}"]
+        # )
         
         return {
             "status": "success",
@@ -1401,12 +1393,12 @@ async def submit_hitl_approval(approval: HITLApprovalRequest):
     if approval.approval_id in manager.hitl_pending:
         manager.hitl_pending[approval.approval_id]["status"] = "approved"
         
-        # Log to Datadog
-        api.Event.create(
-            title="HITL Approval",
-            text=f"HITL approval {approval.approval_id} submitted",
-            tags=["ai-console", "hitl-approval"]
-        )
+        # Log to Datadog (if available)
+        # api.Event.create(
+        #     title="HITL Approval",
+        #     text=f"HITL approval {approval.approval_id} submitted",
+        #     tags=["ai-console", "hitl-approval"]
+        # )
         
         return {"status": "success", "message": "Approval processed"}
     

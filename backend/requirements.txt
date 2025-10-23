@@ -1,23 +1,21 @@
-# ELCA Mothership AIs - Enhanced 2025 Requirements
-# Core Framework (Latest October 2025)
+# ELCA Mothership AIs - Enhanced 2025 Requirements (Render Compatible)
+# Core Framework (Latest Stable Versions)
 fastapi==0.119.1
 uvicorn[standard]==0.38.0
 pydantic==2.12.3
 pydantic-settings==2.11.0
 
-# Database (Latest October 2025)
+# Database (Stable Versions)
 sqlalchemy==2.0.44
 psycopg2-binary==2.9.11
-neo4j==5.26.13
+neo4j==5.28.2
 
-# AI/ML Core (Latest October 2025)
+# AI/ML Core (Stable Versions)
 langchain==1.0.2
-langgraph==0.2.28
 openai==2.6.0
 anthropic==0.71.0
 google-generativeai==0.8.3
 huggingface-hub==0.30.0
-pinecone-client==3.0.0
 
 # WebSocket
 python-socketio==5.14.2
@@ -43,21 +41,3 @@ slowapi==0.1.9
 
 # Security
 cryptography==44.0.0
-
-# Observability (Datadog AI Agents Console)
-datadog==0.55.0
-
-# Multimodal capabilities
-elevenlabs==0.2.26
-openai-whisper==20231117
-
-# Ontology support
-owlready2==0.47
-
-# Evaluation framework
-ragas==0.2.0
-
-# Streamlit for demos
-streamlit==1.50.0
-plotly==5.24.1
-pandas==2.2.3
