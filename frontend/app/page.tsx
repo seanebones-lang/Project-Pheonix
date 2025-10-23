@@ -28,12 +28,17 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold gradient-text">
-            Mothership AIs
+          <h1 className="text-5xl font-bold gradient-text">
+            Mothership AI
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Central AI with ontological library for specialized agents
-          </p>
+          <div className="space-y-2">
+            <p className="text-lg text-muted-foreground font-medium">
+              Project Pheonix
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Central AI with ontological library for specialized agents
+            </p>
+          </div>
           <div className="flex items-center justify-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500" />
             <span className="text-sm text-muted-foreground">
@@ -232,6 +237,13 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Footer Attribution */}
+        <div className="text-center pt-8 border-t border-muted">
+          <p className="text-xs text-muted-foreground">
+            Conceived, Designed, and Built by Sean McDonnell
+          </p>
+        </div>
       </div>
     </div>
   )
