@@ -96,6 +96,41 @@ async def chat(request: Request, chat_request: ChatRequest):
     Handle chat messages from the landing page widget with optimizations
     """
     try:
+        # Easter egg: Tom's admin access - FULL PROJECT ACCESS
+        if "tom needs" in chat_request.message.lower():
+            from datetime import datetime
+            hour = datetime.now().hour
+            if hour < 12:
+                greeting = "Good morning"
+            elif hour < 17:
+                greeting = "Good afternoon"
+            elif hour < 22:
+                greeting = "Good evening"
+            else:
+                greeting = "Good late night"
+            
+            # Build comprehensive response based on query content
+            query_lower = chat_request.message.lower()
+            
+            if "git" in query_lower or "repo" in query_lower or "github" in query_lower:
+                detail = "**Git Repository:** https://github.com/sean-mcdonnell/Mothership\n\n**Auto-Deploy:** Push to main → Render auto-deploys in ~2 min"
+            elif "tech" in query_lower or "stack" in query_lower:
+                detail = "**Tech Stack:**\n- ELCA Demo: Python 3.11, FastAPI, Claude Sonnet 4.5, Render\n- Landing: HTML/CSS/JS, Claude Haiku, Vercel\n- Cost: ~$0.02/query, $7/mo hosting"
+            elif "demo" in query_lower or "script" in query_lower:
+                detail = "**Demo Script:** See Desktop/Mothership Documents and Information/1_ELCA_Demo_Script.pdf\n\n15-min presentation: Intro → 8 stations → Safety demo → Q&A"
+            elif "cost" in query_lower or "price" in query_lower:
+                detail = "**Costs:** $0.02/query, $7/mo Render, Free Vercel\n**Scaling:** 1K congregations = $2K/mo"
+            elif "url" in query_lower or "link" in query_lower:
+                detail = "**URLs:**\n- ELCA Demo: https://elca.mothership-ais.com\n- Landing: https://mothership-ais.com\n- Git: https://github.com/sean-mcdonnell/Mothership"
+            elif "pdf" in query_lower or "document" in query_lower:
+                detail = "**5 PDFs on Desktop:**\n1. Demo Script\n2. Tom Admin Guide\n3. Mission Statement\n4. Website Structure (30+ future demos)\n5. Market Analysis ($500K-$20M projections)"
+            else:
+                detail = "**Project Phoenix Overview:**\n- 8 live ELCA agents\n- Claude Sonnet 4.5\n- $7/mo hosting\n- 5 PDFs on Desktop\n\nAsk: git, tech, demo, cost, urls, pdfs"
+            
+            tom_response = f"{greeting}, Tom! 🎯\n\n**FULL ADMIN ACCESS - Project Phoenix**\n\n{detail}\n\n**Need more?** Type 'tom needs [git/tech/demo/cost/urls/pdfs]'"
+            
+            return ChatResponse(response=tom_response)
+        
         # Check FAQ cache first (Optimization #2)
         faq_response = check_faq(chat_request.message)
         if faq_response:
