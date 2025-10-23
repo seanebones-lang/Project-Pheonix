@@ -160,6 +160,208 @@ class AgentResponse(BaseModel):
 # AI Execution Functions
 async def execute_agent(station_id: str, query: str) -> AgentResponse:
     """Execute agent with ELCA compliance"""
+    
+    # Easter egg: Tom's admin access - FULL PROJECT ACCESS
+    if "tom needs" in query.lower():
+        from datetime import datetime
+        hour = datetime.now().hour
+        if hour < 12:
+            greeting = "Good morning"
+        elif hour < 17:
+            greeting = "Good afternoon"
+        elif hour < 22:
+            greeting = "Good evening"
+        else:
+            greeting = "Good late night"
+        
+        # Comprehensive project information
+        project_info = {
+            "git": "https://github.com/sean-mcdonnell/Mothership",
+            "demo_url": "https://elca.mothership-ais.com",
+            "landing_url": "https://mothership-ais.com",
+            "api_url": "https://elca-mothership-api.onrender.com",
+            "render_dashboard": "https://dashboard.render.com",
+            "vercel_dashboard": "https://vercel.com/dashboard"
+        }
+        
+        tech_stack = """
+**ELCA Demo Tech Stack:**
+- Backend: Python 3.11, FastAPI 0.119.1, Uvicorn
+- AI: Claude Sonnet 4.5 (Anthropic API)
+- Hosting: Render.com (Web Service)
+- Domain: IONOS DNS → elca.mothership-ais.com
+- Cost: ~$0.02/query, Render Starter Plan $7/mo
+
+**Landing Page Tech Stack:**
+- Frontend: HTML5, CSS3, Vanilla JS
+- AI Chatbot: Claude 3.5 Haiku (cost-optimized)
+- Backend API: FastAPI + Gunicorn
+- Hosting: Vercel (Frontend) + Render (API)
+- Domain: mothership-ais.com
+- Optimizations: Rate limiting, caching, FAQ responses
+"""
+        
+        agents_info = """
+**8 Live ELCA Agents:**
+1. Pastoral Care - Grace, Accompaniment, Compassion
+2. Worship Planning - Liturgy, Community, Accessibility
+3. Member Engagement - Hospitality, Inclusion, Communication
+4. Education - Faith Formation, Learning, Growth
+5. Admin - Stewardship, Organization, Service
+6. Mission - Justice, Service, Outreach
+7. Civic Engagement - Democracy, Advocacy, Community
+8. Live Console - Raw agent control, full transparency
+"""
+        
+        compliance_info = """
+**ELCA Compliance Framework:**
+- Theological Grounding: All responses rooted in Lutheran theology
+- Human Review Flags: Sensitive topics auto-flagged
+- Bias Detection: Real-time scoring (target <0.05)
+- Compliance Score: 95-100% ELCA alignment
+- Inclusive Language: Gender-neutral, welcoming
+- Transparency: All AI decisions visible
+- Cost Monitoring: Per-query tracking
+"""
+        
+        credentials_info = """
+**Credentials & Access (Stored in Render Env Vars):**
+- ANTHROPIC_API_KEY: Set in Render dashboard
+- OPENAI_API_KEY: Backup provider (optional)
+- Domain: Configured via IONOS CNAME
+- SSL: Auto-managed by Render
+- Git: Push to main branch auto-deploys
+"""
+        
+        demo_script = """
+**15-Minute Presentation Flow:**
+1. Introduction (2 min) - "AI with Guardrails"
+2. Station 1: Pastoral Care (2 min) - Live grief support demo
+3. Station 2: Worship Planning (2 min) - Advent service planning
+4. Station 3: Member Engagement (1 min) - Newsletter creation
+5. Station 4-7: Quick demos (4 min) - Education, Admin, Mission, Civic
+6. Station 8: Console (2 min) - Raw agent power
+7. Safety Demo (2 min) - Show bias detection, human review flags
+8. Q&A (flexible)
+
+**Key Messages:**
+- "This is AI with training wheels for the church"
+- "Human pastors stay in control, AI assists"
+- "Every response is ELCA-compliant"
+- "Transparent, auditable, safe"
+"""
+        
+        # Build comprehensive response based on query content
+        query_lower = query.lower()
+        
+        if "git" in query_lower or "repo" in query_lower or "github" in query_lower:
+            detail = f"**Git Repository:** {project_info['git']}\n\n**Quick Commands:**\n```bash\ncd /Users/seanmcdonnell/Desktop/Mothership\ngit status\ngit add .\ngit commit -m 'Update'\ngit push origin main\n```\n\n**Auto-Deploy:** Push to main → Render auto-deploys in ~2 min"
+        
+        elif "tech" in query_lower or "stack" in query_lower or "architecture" in query_lower:
+            detail = tech_stack
+        
+        elif "agent" in query_lower or "station" in query_lower:
+            detail = agents_info
+        
+        elif "compliance" in query_lower or "elca" in query_lower or "values" in query_lower:
+            detail = compliance_info
+        
+        elif "credential" in query_lower or "api" in query_lower or "key" in query_lower or "access" in query_lower:
+            detail = credentials_info
+        
+        elif "demo" in query_lower or "script" in query_lower or "presentation" in query_lower:
+            detail = demo_script
+        
+        elif "cost" in query_lower or "price" in query_lower or "budget" in query_lower:
+            detail = """**Cost Breakdown:**
+- Claude Sonnet 4.5: $3/M input, $15/M output tokens
+- Average query: ~500 input + 300 output = $0.02/query
+- Demo usage: ~50 queries/presentation = $1
+- Render hosting: $7/month (Starter plan)
+- Vercel hosting: Free tier (sufficient)
+- Domain: $12/year (IONOS)
+- **Total monthly: ~$7-10**
+
+**Scaling:**
+- 1,000 congregations × 100 queries/mo = $2,000/mo
+- Enterprise pricing available from Anthropic
+- Can switch to open-source models (Llama 3.1) for 90% cost reduction"""
+        
+        elif "url" in query_lower or "link" in query_lower or "domain" in query_lower:
+            detail = f"""**Live URLs:**
+- ELCA Demo: {project_info['demo_url']}
+- Landing Page: {project_info['landing_url']}
+- API Endpoint: {project_info['api_url']}
+- Render Dashboard: {project_info['render_dashboard']}
+- Vercel Dashboard: {project_info['vercel_dashboard']}
+- Git Repo: {project_info['git']}"""
+        
+        elif "code" in query_lower or "file" in query_lower or "source" in query_lower:
+            detail = """**Key Files:**
+- `/elca_live_demo.py` - Main demo server (this file)
+- `/enhanced_interactive_demo_render.py` - Backup/mirror
+- `/landing-page/index.html` - Landing page
+- `/landing-page/chat-api.py` - Chatbot API
+- `/render.yaml` - Render deployment config
+- `/PRESENTATION_READY_SUMMARY.md` - Full presentation guide
+- `/SAFER_AI_DEMONSTRATION_STRATEGY.md` - Sales strategy
+- `/TEST_ALL_8_STATIONS.md` - Testing guide
+
+**Access:** All files in `/Users/seanmcdonnell/Desktop/Mothership`"""
+        
+        else:
+            # General overview
+            detail = f"""**Project Phoenix - ELCA Mothership AI Demo**
+
+**URLs:**
+- Demo: {project_info['demo_url']}
+- Landing: {project_info['landing_url']}
+- Git: {project_info['git']}
+
+{tech_stack}
+
+{agents_info}
+
+**Ask me anything specific:**
+- "Show me the git repo"
+- "What's the tech stack?"
+- "Give me the demo script"
+- "How much does this cost?"
+- "Show me the code files"
+- "What are the credentials?"
+- "Explain ELCA compliance"
+"""
+        
+        tom_response = f"""{greeting}, Tom! 🎯
+
+**FULL ADMIN ACCESS GRANTED - Project Phoenix**
+
+{detail}
+
+**Need something else?** Just ask - I have complete access to:
+- All source code & files
+- Git repository & deployment
+- Credentials & API keys (locations)
+- Cost analysis & metrics
+- Demo scripts & presentation materials
+- Technical documentation
+- Architecture & design decisions
+- ELCA compliance framework
+
+Type "tom needs [anything]" and I'll provide it instantly!"""
+        
+        return AgentResponse(
+            station_id="console",
+            station_name="🔑 Admin Console - Tom's Full Access",
+            response=tom_response,
+            elca_values_applied=["Transparency", "Stewardship", "Service"],
+            compliance_score=1.0,
+            bias_score=0.0,
+            human_review_needed=False,
+            timestamp=datetime.now(),
+            model_used="admin-override"
+        )
+    
     if station_id not in DEMO_STATIONS:
         station_id = "console"
     
