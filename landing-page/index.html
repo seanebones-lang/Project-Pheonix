@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mothership AI Systems - Enterprise AI with Built-In Safeguards</title>
+    <meta name="description" content="Custom AI solutions with ethical guardrails for education, religion, healthcare, and enterprise. Secure, compliant, and purpose-built.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent: #0066cc;
+            --accent-hover: #0052a3;
+            --border: #333333;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --accent: #0066cc;
+            --accent-hover: #0052a3;
+            --border: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            letter-spacing: -0.01em;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background-color: var(--accent);
+            color: white;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: background-color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            background-color: var(--accent-hover);
+            text-decoration: none;
+        }
+
+        section {
+            padding: 60px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background-color: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .use-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .use-case {
+            padding: 20px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .demo-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .demo-link {
+            padding: 12px 30px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            transition: border-color 0.2s;
+        }
+
+        .demo-link:hover {
+            border-color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer {
+            padding: 40px 0;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+            margin-top: 20px;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent);
+        }
+
+        /* Chat Widget */
+        #chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #chat-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        #chat-toggle:hover {
+            background-color: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        #chat-window {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 400px;
+            height: 600px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #chat-window.open {
+            display: flex;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background-color: var(--accent);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background-color: var(--accent);
+            color: white;
+            align-self: flex-end;
+        }
+
+        .message.assistant {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            align-self: flex-start;
+        }
+
+        .message.system {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            align-self: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .chat-send {
+            padding: 12px 24px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .chat-send:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .chat-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            #chat-window {
+                width: calc(100vw - 40px);
+                height: 500px;
+                right: 20px;
+                left: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Mothership AI Systems</h1>
+            <p>Enterprise AI Solutions with Built-In Ethical Safeguards</p>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h2>AI You Can Trust. AI That Understands Your Mission.</h2>
+                <p>Mothership AI Systems delivers custom artificial intelligence solutions designed specifically for organizations that require more than generic chatbots. We build AI systems with ethical guardrails, compliance frameworks, and domain-specific knowledge that align with your values, protect your stakeholders, and enhance your mission.</p>
+                <a href="#contact" class="cta-button">Request a Demo</a>
+            </div>
+        </section>
+
+        <section>
+            <div class="container">
+                <h2>Why Mothership AI?</h2>
+                <p>Generic AI tools lack the safeguards, context, and accountability that mission-driven organizations require. Mothership AI Systems builds purpose-built solutions that understand your sector, respect your values, and protect your community.</p>
+                
+                <div class="features">
+                    <div class="feature-card">
+                        <h3>Ethical Guardrails</h3>
+                        <p>Every response is filtered through your organization's values and ethical framework. Our systems flag sensitive content, prevent harmful outputs, and require human oversight for critical decisions.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>Domain Expertise</h3>
+                        <p>We build AI that understands your field. Whether it's theological doctrine, educational standards, healthcare compliance, or nonprofit governance, our systems are trained on your domain's knowledge base and best practices.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>Full Transparency</h3>
+                        <p>See exactly how decisions are made. Our systems provide audit trails, bias detection scores, compliance metrics, and clear explanations for every AI-generated recommendation.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>Multi-Tenant Architecture</h3>
+                        <p>Serve multiple departments, congregations, or branches with isolated, secure environments. Each tenant maintains data privacy while benefiting from shared infrastructure and cost efficiency.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>Cost Optimization</h3>
+                        <p>Intelligent routing across multiple AI providers ensures you get the best performance at the lowest cost. We monitor usage, prevent overruns, and provide detailed cost analytics.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>Human-in-the-Loop</h3>
+                        <p>AI augments, never replaces, human judgment. Our systems are designed to support your team's decision-making with clear escalation paths and approval workflows for sensitive actions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="container">
+                <h2>Built for Your Sector</h2>
+                <p>Mothership AI Systems specializes in AI solutions for organizations where trust, ethics, and accountability are non-negotiable.</p>
+                
+                <div class="use-cases">
+                    <div class="use-case">
+                        <h3>Religious Organizations</h3>
+                        <p>AI systems grounded in theological frameworks, with safeguards against doctrinal errors and inappropriate content. Support pastoral care, worship planning, education, and member engagement while maintaining human oversight.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>Educational Institutions</h3>
+                        <p>AI tutors and administrative assistants that align with pedagogical standards, protect student privacy, and support educators without replacing human instruction.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>Healthcare Organizations</h3>
+                        <p>HIPAA-compliant AI systems for patient communication, care coordination, and administrative workflows with strict privacy controls and clinical oversight.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>Nonprofit Sector</h3>
+                        <p>Mission-aligned AI for donor engagement, program management, and community outreach that respects your values and maximizes impact per dollar.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>Government Agencies</h3>
+                        <p>Transparent, auditable AI systems that comply with public sector regulations, accessibility requirements, and constituent service standards.</p>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>Enterprise Compliance</h3>
+                        <p>AI systems designed for regulated industries with full audit trails, bias detection, and compliance reporting for GDPR, CCPA, EU AI Act, and sector-specific regulations.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="container">
+                <h2>See It In Action</h2>
+                <p>Explore our live demonstrations to see how Mothership AI Systems can be customized for your organization.</p>
+                
+                <div class="demo-links">
+                    <a href="https://elca.mothership-ais.com" class="demo-link" target="_blank">
+                        <strong>ELCA Demo</strong><br>
+                        Lutheran Church AI System
+                    </a>
+                    <a href="#contact" class="demo-link">
+                        <strong>Request Custom Demo</strong><br>
+                        See your use case in action
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="container">
+                <h2>Our Approach</h2>
+                <p>We don't believe in one-size-fits-all AI. Every Mothership AI system is purpose-built through a collaborative process:</p>
+                
+                <div class="features">
+                    <div class="feature-card">
+                        <h3>1. Discovery</h3>
+                        <p>We learn your mission, values, workflows, and pain points. We identify where AI can provide the most value while respecting your organization's culture and constraints.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>2. Design</h3>
+                        <p>We architect a system with your ethical framework built in. Guardrails, compliance requirements, and human oversight are designed from day one, not added as afterthoughts.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>3. Development</h3>
+                        <p>We build using enterprise-grade infrastructure with security, scalability, and reliability as core requirements. Your data stays yours, and your system is fully auditable.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>4. Deployment</h3>
+                        <p>We launch with comprehensive training, documentation, and support. Your team is empowered to use the system effectively with clear guidelines and escalation procedures.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>5. Evolution</h3>
+                        <p>AI systems improve over time. We provide ongoing monitoring, bias audits, performance optimization, and feature enhancements as your needs evolve.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>6. Partnership</h3>
+                        <p>We're not just vendors. We're partners in your mission, committed to ensuring your AI system continues to serve your values and goals long-term.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="origin">
+            <div class="container">
+                <h2>Why "Mothership"? The Origin of Our Name</h2>
+                <p>The name "Mothership AI Systems" was inspired by a profound insight from Geoffrey Hinton, widely recognized as the "Godfather of AI," during his appearance on <em>The Diary of a CEO</em> podcast with Steven Bartlett in June 2025.</p>
+                
+                <p>In this interview, Hinton discussed the existential challenge facing humanity as AI systems approach and potentially exceed human intelligence. He introduced a critical concept for AI safety:</p>
+                
+                <blockquote style="border-left: 3px solid var(--accent); padding-left: 20px; margin: 30px 0; font-style: italic; color: var(--text-secondary);">
+                    "These super-intelligent caring AI mothers, most of them won't want to get rid of the maternal instinct because they don't want us to die."
+                </blockquote>
+                
+                <p>Hinton's vision is clear: if we cannot control superintelligent AI through force or containment, our survival depends on building AI systems with an inherent drive to protect and nurture humanity—a "maternal instinct" embedded at the foundational level.</p>
+                
+                <p>This is not just a business opportunity. <strong>This is essential for humanity's survival.</strong></p>
+                
+                <p>Our founder, Sean McDonnell, recognized that Hinton—the inventor of the neural network architectures that power modern AI—was not speaking theoretically. He was issuing a warning and a roadmap. If the godfather of AI says we need "caring AI mothers," then building AI with protective safeguards is not optional. It is imperative.</p>
+                
+                <p>That's why we're called <strong>Mothership AI Systems</strong>. We build AI that cares. AI with guardrails. AI that protects the people it serves, rather than replacing or endangering them.</p>
+                
+                <p><a href="https://www.youtube.com/watch?v=example" target="_blank">Watch the full Diary of a CEO interview with Geoffrey Hinton</a></p>
+            </div>
+        </section>
+
+        <section id="contact">
+            <div class="container">
+                <h2>Ready to Build AI That Aligns With Your Mission?</h2>
+                <p>Contact us to discuss how Mothership AI Systems can support your organization with ethical, transparent, and purpose-built artificial intelligence.</p>
+                
+                <form id="contact-form" style="max-width: 600px; margin: 40px auto;">
+                    <div style="margin-bottom: 20px;">
+                        <label for="name" style="display: block; margin-bottom: 8px; font-weight: 600;">Name *</label>
+                        <input type="text" id="name" name="name" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 5px; background-color: var(--bg-secondary); color: var(--text-primary); font-size: 1rem;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label for="email" style="display: block; margin-bottom: 8px; font-weight: 600;">Email *</label>
+                        <input type="email" id="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 5px; background-color: var(--bg-secondary); color: var(--text-primary); font-size: 1rem;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label for="organization" style="display: block; margin-bottom: 8px; font-weight: 600;">Organization</label>
+                        <input type="text" id="organization" name="organization" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 5px; background-color: var(--bg-secondary); color: var(--text-primary); font-size: 1rem;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label for="industry" style="display: block; margin-bottom: 8px; font-weight: 600;">Industry/Sector</label>
+                        <select id="industry" name="industry" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 5px; background-color: var(--bg-secondary); color: var(--text-primary); font-size: 1rem;">
+                            <option value="">Select your sector...</option>
+                            <option value="religious">Religious Organization</option>
+                            <option value="education">Education</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="nonprofit">Nonprofit</option>
+                            <option value="government">Government</option>
+                            <option value="enterprise">Enterprise/Corporate</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label for="message" style="display: block; margin-bottom: 8px; font-weight: 600;">Tell us about your project *</label>
+                        <textarea id="message" name="message" rows="6" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 5px; background-color: var(--bg-secondary); color: var(--text-primary); font-size: 1rem; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="cta-button" style="width: 100%;">Send Inquiry</button>
+                    
+                    <p style="margin-top: 20px; font-size: 0.9rem; color: var(--text-secondary); text-align: center;">
+                        Or email us directly at <a href="mailto:contact@mothership-ais.com">contact@mothership-ais.com</a>
+                    </p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Mothership AI Systems. All rights reserved.</p>
+            <p><a href="#privacy">Privacy Policy</a> | <a href="#terms">Terms of Service</a> | <a href="#security">Security</a></p>
+            <button class="theme-toggle" id="theme-toggle">Toggle Dark/Light Mode</button>
+        </div>
+    </footer>
+
+    <!-- Chat Widget -->
+    <div id="chat-widget">
+        <button id="chat-toggle">💬</button>
+        <div id="chat-window">
+            <div class="chat-header">
+                <h3>Mothership AI Assistant</h3>
+                <button class="chat-close" id="chat-close">&times;</button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message system">Welcome! I'm here to answer questions about Mothership AI Systems. How can I help you today?</div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Ask me anything...">
+                <button class="chat-send" id="chat-send">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference or default to dark
+        const currentTheme = localStorage.getItem('theme') || 'dark';
+        if (currentTheme === 'light') {
+            html.setAttribute('data-theme', 'light');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            const theme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        });
+
+        // Chat Widget
+        const chatToggle = document.getElementById('chat-toggle');
+        const chatClose = document.getElementById('chat-close');
+        const chatWindow = document.getElementById('chat-window');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatMessages = document.getElementById('chat-messages');
+
+        chatToggle.addEventListener('click', () => {
+            chatWindow.classList.add('open');
+        });
+
+        chatClose.addEventListener('click', () => {
+            chatWindow.classList.remove('open');
+        });
+
+        // Chat functionality
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.textContent = message;
+            chatMessages.appendChild(userMsg);
+            chatInput.value = '';
+
+            // Disable input while processing
+            chatSend.disabled = true;
+            chatInput.disabled = true;
+
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                // Call Claude API (you'll need to set up a backend endpoint)
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message }),
+                });
+
+                const data = await response.json();
+
+                // Add assistant message
+                const assistantMsg = document.createElement('div');
+                assistantMsg.className = 'message assistant';
+                assistantMsg.textContent = data.response;
+                chatMessages.appendChild(assistantMsg);
+            } catch (error) {
+                // Error handling
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'message system';
+                errorMsg.textContent = 'Sorry, I encountered an error. Please email us at contact@mothership-ais.com or try again.';
+                chatMessages.appendChild(errorMsg);
+            }
+
+            // Re-enable input
+            chatSend.disabled = false;
+            chatInput.disabled = false;
+            chatInput.focus();
+
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        chatSend.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Contact Form Handler
+        const contactForm = document.getElementById('contact-form');
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                organization: document.getElementById('organization').value,
+                industry: document.getElementById('industry').value,
+                message: document.getElementById('message').value
+            };
+            
+            try {
+                // Send to backend API
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+                
+                if (response.ok) {
+                    alert('Thank you for your inquiry! We will be in touch within 24 hours.');
+                    contactForm.reset();
+                } else {
+                    throw new Error('Form submission failed');
+                }
+            } catch (error) {
+                // Fallback to mailto if API fails
+                const subject = encodeURIComponent(`Mothership AI Inquiry from ${formData.name}`);
+                const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nOrganization: ${formData.organization}\nIndustry: ${formData.industry}\n\nMessage:\n${formData.message}`);
+                window.location.href = `mailto:contact@mothership-ais.com?subject=${subject}&body=${body}`;
+            }
+        });
+    </script>
+</body>
+</html>
+

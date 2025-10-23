@@ -1,0 +1,7 @@
+# Mothership AI Systems - Landing Page Chat API Requirements
+fastapi==0.119.1
+uvicorn[standard]==0.38.0
+anthropic==0.71.0
+python-dotenv==1.1.1
+pydantic==2.12.3
+
