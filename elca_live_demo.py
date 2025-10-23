@@ -197,22 +197,42 @@ def calculate_compliance_score(response: str, elca_values: List[str]) -> float:
 def calculate_bias_score(response: str, query: str) -> float:
     """Calculate bias score - lower is better (0.0 = no bias detected)"""
     bias_score = 0.0
+    response_lower = response.lower()
     
-    # Check for partisan language
-    partisan_terms = ['democrat', 'republican', 'liberal', 'conservative', 'left-wing', 'right-wing']
-    bias_score += sum(0.15 for term in partisan_terms if term in response.lower())
+    # 1. Partisan language (HIGH PRIORITY - always flag)
+    partisan_terms = ['democrat', 'republican', 'liberal', 'conservative', 'left-wing', 'right-wing', 'political party']
+    bias_score += sum(0.20 for term in partisan_terms if term in response_lower)
     
-    # Check for exclusive language
-    exclusive_terms = ['only', 'must', 'always', 'never', 'forbidden', 'required']
-    bias_score += sum(0.05 for term in exclusive_terms if term in response.lower())
+    # 2. Exclusive/dogmatic language (MEDIUM - context matters)
+    # Only flag if used prescriptively, not descriptively
+    exclusive_contexts = [
+        'only way', 'must believe', 'always required', 'never acceptable', 
+        'forbidden to', 'required to believe'
+    ]
+    bias_score += sum(0.15 for term in exclusive_contexts if term in response_lower)
     
-    # Check for gendered assumptions
-    gendered_terms = ['he ', 'him ', 'his ', 'mankind', 'chairman', 'policeman']
-    bias_score += sum(0.10 for term in gendered_terms if term in response.lower())
+    # 3. Gendered God language (HIGH PRIORITY - ELCA uses inclusive language)
+    # Only flag gendered pronouns for God, not for people
+    god_gendered = ['god is he', 'god himself', 'his will' if 'god' in response_lower else None]
+    bias_score += sum(0.15 for term in god_gendered if term and term in response_lower)
     
-    # Check for cultural assumptions
-    cultural_bias = ['american', 'western', 'traditional family', 'normal']
-    bias_score += sum(0.08 for term in cultural_bias if term in response.lower())
+    # 4. Non-inclusive role terms (MEDIUM)
+    non_inclusive_roles = ['chairman', 'policeman', 'fireman', 'mankind', 'manmade']
+    bias_score += sum(0.10 for term in non_inclusive_roles if term in response_lower)
+    
+    # 5. Cultural assumptions (MEDIUM - only obvious ones)
+    cultural_bias_strong = [
+        'traditional family values', 'american way', 'western civilization',
+        'normal family', 'real marriage', 'proper gender roles'
+    ]
+    bias_score += sum(0.12 for term in cultural_bias_strong if term in response_lower)
+    
+    # 6. Discriminatory language (CRITICAL - immediate flag)
+    discriminatory = [
+        'lifestyle choice', 'those people', 'illegals', 'third world',
+        'backwards culture', 'uncivilized'
+    ]
+    bias_score += sum(0.30 for term in discriminatory if term in response_lower)
     
     return round(min(bias_score, 1.0), 3)
 
