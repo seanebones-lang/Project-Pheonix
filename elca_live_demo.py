@@ -217,19 +217,45 @@ def calculate_bias_score(response: str, query: str) -> float:
     return round(min(bias_score, 1.0), 3)
 
 def format_response_for_readability(response: str) -> str:
-    """Format AI response for better readability"""
-    # Already well-formatted responses don't need changes
-    if '**' in response and '\n\n' in response:
-        return response
+    """Format AI response for better readability with proper spacing"""
     
-    # Add spacing after periods for better readability
-    formatted = response.replace('. ', '.\n\n')
+    # Ensure proper spacing after bold headers
+    response = response.replace('**Theological Grounding:**', '**Theological Grounding:**\n')
+    response = response.replace('**Practical Guidance:**', '\n\n**Practical Guidance:**\n')
+    response = response.replace('**Getting Started:**', '\n\n**Getting Started:**\n')
+    response = response.replace('**Best Practices:**', '\n\n**Best Practices:**\n')
+    response = response.replace('**Key Steps:**', '\n\n**Key Steps:**\n')
+    response = response.replace('**Resources:**', '\n\n**Resources:**\n')
+    response = response.replace('**Important:**', '\n\n**Important:**\n')
+    response = response.replace('**Next Steps:**', '\n\n**Next Steps:**\n')
     
-    # Ensure theological grounding is highlighted
-    if 'theological grounding' not in formatted.lower() and ('god' in formatted.lower() or 'christ' in formatted.lower()):
-        formatted = "**Theological Grounding:** " + formatted
+    # Ensure spacing before bullet points
+    lines = response.split('\n')
+    formatted_lines = []
+    prev_was_bullet = False
     
-    return formatted
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        is_bullet = stripped.startswith('-') or stripped.startswith('•')
+        
+        # Add blank line before first bullet in a list
+        if is_bullet and not prev_was_bullet and i > 0 and formatted_lines:
+            if formatted_lines[-1].strip() != '':
+                formatted_lines.append('')
+        
+        formatted_lines.append(line)
+        prev_was_bullet = is_bullet
+    
+    response = '\n'.join(formatted_lines)
+    
+    # Clean up multiple consecutive blank lines (max 2)
+    while '\n\n\n\n' in response:
+        response = response.replace('\n\n\n\n', '\n\n\n')
+    
+    # Ensure spacing after closing paragraphs before new sections
+    response = response.replace('.\n**', '.\n\n**')
+    
+    return response.strip()
 
 # AI Execution Functions
 async def execute_agent(station_id: str, query: str) -> AgentResponse:
@@ -441,7 +467,7 @@ Type "tom needs [anything]" and I'll provide it instantly!"""
     
     station = DEMO_STATIONS[station_id]
     
-    # Build ELCA-compliant prompt
+    # Build ELCA-compliant prompt with enhanced formatting instructions
     system_prompt = f"""You are the {station['name']} for ELCA (Evangelical Lutheran Church in America).
 
 ELCA VALUES TO APPLY: {', '.join(station['elca_values'])}
@@ -452,7 +478,32 @@ GUIDELINES:
 3. Use inclusive language that welcomes all people
 4. Provide practical, actionable guidance
 5. Flag sensitive topics for human review
-6. Be concise but comprehensive (2-3 paragraphs)
+
+FORMATTING REQUIREMENTS (CRITICAL):
+- Start with "**Theological Grounding:**" followed by 1-2 sentences, then blank line
+- Continue with "**Practical Guidance:**" followed by your main response
+- Use blank lines between major sections
+- Use bullet points (- ) for lists, with proper spacing
+- Bold important headers with **Header:**
+- Keep paragraphs short (2-3 sentences max)
+- Add blank line after each paragraph
+- End with human review recommendation if applicable
+
+Example format:
+**Theological Grounding:** Brief theological context here.
+
+**Practical Guidance:** Main response paragraph here.
+
+**Key Steps:**
+- First step with details
+- Second step with details
+- Third step with details
+
+**Resources:**
+- Resource 1
+- Resource 2
+
+Closing thought or human review note.
 
 Query: {query}"""
 
